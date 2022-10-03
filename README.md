@@ -1,6 +1,7 @@
 # MEAM 517 Final Project
 
-Development is based on the repository of the F1TENTH Gym environment. You can find the [documentation](https://f1tenth-gym.readthedocs.io/en/latest/) of the environment here.
+Development is based on the [repository of the F1TENTH Gym environment](https://github.com/f1tenth/f1tenth_gym). 
+You can find the [documentation](https://f1tenth-gym.readthedocs.io/en/latest/) of the environment here.
 
 ## Installation
 
