@@ -5,9 +5,9 @@ import gym
 import numpy as np
 from argparse import Namespace
 
-from numba import njit
+from numba import njit  # JIT compiler
 
-from pyglet.gl import GL_POINTS
+from pyglet.gl import GL_POINTS  # game interface
 
 """
 Planner Helpers
@@ -52,7 +52,8 @@ def nearest_point_on_trajectory(point, trajectory):
 @njit(fastmath=False, cache=True)
 def first_point_on_trajectory_intersecting_circle(point, radius, trajectory, t=0.0, wrap=False):
     """
-    starts at beginning of trajectory, and find the first point one radius away from the given point along the trajectory.
+    starts at beginning of trajectory, and find the first point one radius away from the given point along the
+    trajectory.
 
     Assumes that the first segment passes within a single radius of the point
 
@@ -83,22 +84,22 @@ def first_point_on_trajectory_intersecting_circle(point, radius, trajectory, t=0
         t1 = (-b - discriminant) / (2.0 * a)
         t2 = (-b + discriminant) / (2.0 * a)
         if i == start_i:
-            if t1 >= 0.0 and t1 <= 1.0 and t1 >= start_t:
+            if 0.0 <= t1 <= 1.0 and t1 >= start_t:
                 first_t = t1
                 first_i = i
                 first_p = start + t1 * V
                 break
-            if t2 >= 0.0 and t2 <= 1.0 and t2 >= start_t:
+            if 0.0 <= t2 <= 1.0 and t2 >= start_t:
                 first_t = t2
                 first_i = i
                 first_p = start + t2 * V
                 break
-        elif t1 >= 0.0 and t1 <= 1.0:
+        elif 0.0 <= t1 <= 1.0:
             first_t = t1
             first_i = i
             first_p = start + t1 * V
             break
-        elif t2 >= 0.0 and t2 <= 1.0:
+        elif 0.0 <= t2 <= 1.0:
             first_t = t2
             first_i = i
             first_p = start + t2 * V
@@ -120,12 +121,12 @@ def first_point_on_trajectory_intersecting_circle(point, radius, trajectory, t=0
             discriminant = np.sqrt(discriminant)
             t1 = (-b - discriminant) / (2.0 * a)
             t2 = (-b + discriminant) / (2.0 * a)
-            if t1 >= 0.0 and t1 <= 1.0:
+            if 0.0 <= t1 <= 1.0:
                 first_t = t1
                 first_i = i
                 first_p = start + t1 * V
                 break
-            elif t2 >= 0.0 and t2 <= 1.0:
+            elif 0.0 <= t2 <= 1.0:
                 first_t = t2
                 first_i = i
                 first_p = start + t2 * V
@@ -154,6 +155,7 @@ class PurePursuitPlanner:
     """
 
     def __init__(self, conf, wb):
+        self.waypoints = None
         self.wheelbase = wb
         self.conf = conf
         self.load_waypoints(conf)
@@ -195,7 +197,7 @@ class PurePursuitPlanner:
         if nearest_dist < lookahead_distance:
             lookahead_point, i2, t2 = first_point_on_trajectory_intersecting_circle(position, lookahead_distance, wpts,
                                                                                     i + t, wrap=True)
-            if i2 == None:
+            if i2 is None:
                 return None
             current_waypoint = np.empty((3,))
             # x, y
@@ -285,17 +287,17 @@ def main():
     obs, step_reward, done, info = env.reset(np.array([[conf.sx, conf.sy, conf.stheta]]))
     env.render()
 
-    laptime = 0.0
+    lap_time = 0.0
     start = time.time()
 
     while not done:
         speed, steer = planner.plan(obs['poses_x'][0], obs['poses_y'][0], obs['poses_theta'][0], work['tlad'],
                                     work['vgain'])
         obs, step_reward, done, info = env.step(np.array([[steer, speed]]))
-        laptime += step_reward
+        lap_time += step_reward
         env.render(mode='human')
 
-    print('Sim elapsed time:', laptime, 'Real elapsed time:', time.time() - start)
+    print('Sim elapsed time:', lap_time, 'Real elapsed time:', time.time() - start)
 
 
 if __name__ == '__main__':
