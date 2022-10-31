@@ -21,6 +21,6 @@ pip install -r requirements.txt  # install other dependencies
 Then you can run a quick waypoint follow example by:
 ```bash
 cd examples
-python3 waypoint_follow.py
+python waypoint_follow.py
 ```
 
