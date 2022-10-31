@@ -8,7 +8,7 @@ You can find the [documentation](https://f1tenth-gym.readthedocs.io/en/latest/) 
 We modified the original installation setup as the new conda environment in Windows system.
 After download the repository, install [anaconda](https://www.anaconda.com/products/distribution) and [WSL](https://learn.microsoft.com/en-us/windows/terminal/install).
 [This page](https://www.geeksforgeeks.org/how-to-setup-anaconda-path-to-environment-variable/) might help you in configuring the environmental variable of anaconda.
-If you use powershell, you can follow [this page](https://www.programmersought.com/article/83207512680/#:~:text=CommandNotFoundError%3A%20Your%20shell%20has%20not%20been%20properly%20configured,Player%20is%20loading.%20This%20is%20a%20modal%20window.) as administrator to enable changes.
+If you use powershell, you can follow [this page](https://www.programmersought.com/article/83207512680/#:~:text=CommandNotFoundError%3A%20Your%20shell%20has%20not%20been%20properly%20configured,Player%20is%20loading.%20This%20is%20a%20modal%20window.) as administrator to enable changes for configuring anaconda.
 
 Configure the environment as follows:
 ```bash
