@@ -28,24 +28,24 @@ def nearest_point_on_trajectory(point, trajectory):
     trajectory: Nx2 matrix of (x,y) trajectory waypoints
         - these must be unique. If they are not unique, a divide by 0 error will destroy the world
     """
-    diffs = trajectory[1:, :] - trajectory[:-1, :]
+    diffs = trajectory[1:, :] - trajectory[:-1, :]  # piecewise distances y between every 2 points
     l2s = diffs[:, 0] ** 2 + diffs[:, 1] ** 2
     # this is equivalent to the elementwise dot product
     # dots = np.sum((point - trajectory[:-1,:]) * diffs[:,:], axis=1)
     dots = np.empty((trajectory.shape[0] - 1,))
     for i in range(dots.shape[0]):
-        dots[i] = np.dot((point - trajectory[i, :]), diffs[i, :])
-    t = dots / l2s
-    t[t < 0.0] = 0.0
-    t[t > 1.0] = 1.0
+        dots[i] = np.dot((point - trajectory[i, :]), diffs[i, :])  # =|x|*|y|*cos(θ), x is curr pos to waypoint i
+    t = dots / l2s  # =|x|*cos(θ)/|y| project vector x on vector y, as projection proportion
+    t[t < 0.0] = 0.0  # x & y have 90° angle or more
+    t[t > 1.0] = 1.0  # x & y have 45° angle or less
     # t = np.clip(dots / l2s, 0.0, 1.0)
-    projections = trajectory[:-1, :] + (t * diffs.T).T
+    projections = trajectory[:-1, :] + (t * diffs.T).T  # |x|*cos(θ) on waypoint i -- x's projection on y
     # dists = np.linalg.norm(point - projections, axis=1)
     dists = np.empty((projections.shape[0],))
     for i in range(dists.shape[0]):
-        temp = point - projections[i]
-        dists[i] = np.sqrt(np.sum(temp * temp))
-    min_dist_segment = np.argmin(dists)
+        temp = point - projections[i]  # vector
+        dists[i] = np.sqrt(np.sum(temp * temp))  # distance between current point and waypoint
+    min_dist_segment = np.argmin(dists)  # get index of min distance
     return projections[min_dist_segment], dists[min_dist_segment], t[min_dist_segment], min_dist_segment
 
 
