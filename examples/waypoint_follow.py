@@ -5,7 +5,7 @@ import gym
 import numpy as np
 from argparse import Namespace
 
-from numba import njit  # JIT compiler
+from numba import njit  # JIT compiler -- Just-in-time
 
 from pyglet.gl import GL_POINTS  # game interface
 
@@ -254,11 +254,11 @@ def main():
     """
 
     work = {'mass': 3.463388126201571, 'lf': 0.15597534362552312, 'tlad': 0.82461887897713965,
-            'vgain': 1.375}  # 0.90338203837889}
+            'vgain': 1.375}  # 0.90338203837889}, which is 8m/s for real F1TENTH car
 
     with open('config_example_map.yaml') as file:
         conf_dict = yaml.load(file, Loader=yaml.FullLoader)
-    conf = Namespace(**conf_dict)
+    conf = Namespace(**conf_dict)  # all parameters in yaml file
 
     planner = PurePursuitPlanner(conf, (0.17145 + 0.15875))  # FlippyPlanner(speed=0.2, flip_every=1, steer=10)
 
