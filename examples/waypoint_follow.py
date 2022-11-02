@@ -154,12 +154,12 @@ class PurePursuitPlanner:
     Example Planner
     """
 
-    def __init__(self, conf, wb):
+    def __init__(self, conf, wb):  # config and wheelbase
         self.waypoints = None
         self.wheelbase = wb
         self.conf = conf
-        self.load_waypoints(conf)
-        self.max_reacquire = 20.
+        self.load_waypoints(conf)  # why????
+        self.max_reacquire = 20.  # what????
 
         self.drawn_waypoints = []
 
@@ -176,7 +176,7 @@ class PurePursuitPlanner:
 
         # points = self.waypoints
 
-        points = np.vstack((self.waypoints[:, self.conf.wpt_xind], self.waypoints[:, self.conf.wpt_yind])).T
+        points = np.vstack((self.waypoints[:, self.conf.wpt_xind], self.waypoints[:, self.conf.wpt_yind])).T  # N x 2
 
         scaled_points = 50. * points
 
@@ -186,7 +186,7 @@ class PurePursuitPlanner:
                                 ('c3B/stream', [183, 193, 222]))
                 self.drawn_waypoints.append(b)
             else:
-                self.drawn_waypoints[i].vertices = [scaled_points[i, 0], scaled_points[i, 1], 0.]
+                self.drawn_waypoints[i].vertices = [scaled_points[i, 0], scaled_points[i, 1], 0.]  # vertex????
 
     def _get_current_waypoint(self, waypoints, lookahead_distance, position, theta):
         """
@@ -196,7 +196,7 @@ class PurePursuitPlanner:
         nearest_point, nearest_dist, t, i = nearest_point_on_trajectory(position, wpts)
         if nearest_dist < lookahead_distance:
             lookahead_point, i2, t2 = first_point_on_trajectory_intersecting_circle(position, lookahead_distance, wpts,
-                                                                                    i + t, wrap=True)
+                                                                                    i + t, wrap=True)  # ????
             if i2 is None:
                 return None
             current_waypoint = np.empty((3,))
@@ -221,7 +221,7 @@ class PurePursuitPlanner:
             return 4.0, 0.0
 
         speed, steering_angle = get_actuation(pose_theta, lookahead_point, position, lookahead_distance, self.wheelbase)
-        speed = vgain * speed
+        speed = vgain * speed  # vgain can be modified
 
         return speed, steering_angle
 
@@ -256,7 +256,7 @@ def main():
     work = {'mass': 3.463388126201571, 'lf': 0.15597534362552312, 'tlad': 0.82461887897713965,
             'vgain': 1.375}  # 0.90338203837889}, which is 8m/s for real F1TENTH car
 
-    with open('config_example_map.yaml') as file:
+    with open('config_example_map.yaml') as file:  # in current path
         conf_dict = yaml.load(file, Loader=yaml.FullLoader)
     conf = Namespace(**conf_dict)  # all parameters in yaml file
 
@@ -267,7 +267,7 @@ def main():
 
         e = env_renderer
 
-        # update camera to follow car
+        # update camera to follow car -- the GUI
         x = e.cars[0].vertices[::2]
         y = e.cars[0].vertices[1::2]
         top, bottom, left, right = max(y), min(y), min(x), max(x)
@@ -280,11 +280,13 @@ def main():
 
         planner.render_waypoints(env_renderer)
 
+    # create env
     env = gym.make('f110_gym:f110-v0', map=conf.map_path, map_ext=conf.map_ext, num_agents=1, timestep=0.01,
                    integrator=Integrator.RK4)
     env.add_render_callback(render_callback)
 
-    obs, step_reward, done, info = env.reset(np.array([[conf.sx, conf.sy, conf.stheta]]))
+    # init
+    obs, step_reward, done, info = env.reset(np.array([[conf.sx, conf.sy, conf.stheta]]))  # reset to start pos in yaml
     env.render()
 
     lap_time = 0.0
@@ -292,10 +294,14 @@ def main():
 
     while not done:
         speed, steer = planner.plan(obs['poses_x'][0], obs['poses_y'][0], obs['poses_theta'][0], work['tlad'],
-                                    work['vgain'])
-        obs, step_reward, done, info = env.step(np.array([[steer, speed]]))
-        lap_time += step_reward
-        env.render(mode='human')
+                                    work['vgain'])  # planner calculate the speed & steering angle
+        # observ:       observation dictionary
+        # step reward:  the physics timestep -- used 0.01s?
+        # done boolean indicator: flips to true when either a collision happens or the ego agent finishes 2 laps
+        # info:         info dictionary, empty in the current release
+        obs, step_reward, done, info = env.step(np.array([[steer, speed]]))  # step one forward
+        lap_time += step_reward  # accumulating timestamp
+        env.render(mode='human')  # update GUI
 
     print('Sim elapsed time:', lap_time, 'Real elapsed time:', time.time() - start)
 
