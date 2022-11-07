@@ -78,12 +78,12 @@ class LQRPlanner():
         fy = vehicle_state[1] + self.wheelbase * math.sin(vehicle_state[2])
         position_front_axle = np.array([fx, fy])
         nearest_point_front, nearest_dist, t, target_index = nearest_point(position_front_axle, self.waypoints[:, 0:2])
-        vec_dist_nearest_point = position_front_axle - nearest_point_front
+        vec_dist_nearest_point = position_front_axle - nearest_point_front  # vector, from NPF to PFA
 
-        # crosstrack error - ????
+        # crosstrack error - ???? definition is a bit different from web's
         front_axle_vec_rot_90 = np.array([[math.cos(vehicle_state[2] - math.pi / 2.0)],
                                           [math.sin(vehicle_state[2] - math.pi / 2.0)]])
-        ef = np.dot(vec_dist_nearest_point.T, front_axle_vec_rot_90)  # x1 x2 y1 y2
+        ef = np.dot(vec_dist_nearest_point.T, front_axle_vec_rot_90)  # more lateral, faster, further -- bigger
 
         # heading error
         # NOTE: If your raceline is based on a different coordinate system you need to -+ pi/2 = 90 degrees
@@ -131,7 +131,7 @@ class LQRPlanner():
         theta_e, e_cg, yaw_ref, k_ref, v_ref = self.calc_control_points(vehicle_state, waypoints)
 
         # Update the calculation matrix based on the current vehicle state
-        matrix_ad_, matrix_bd_ = update_matrix(vehicle_state, state_size, ts, self.wheelbase)
+        matrix_ad_, matrix_bd_ = update_matrix(vehicle_state, state_size, ts, self.wheelbase)  # not following
 
         matrix_state_ = np.zeros((state_size, 1))
         matrix_r_ = np.diag(matrix_r)
