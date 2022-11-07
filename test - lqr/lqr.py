@@ -80,10 +80,10 @@ class LQRPlanner():
         nearest_point_front, nearest_dist, t, target_index = nearest_point(position_front_axle, self.waypoints[:, 0:2])
         vec_dist_nearest_point = position_front_axle - nearest_point_front
 
-        # crosstrack error
+        # crosstrack error - ????
         front_axle_vec_rot_90 = np.array([[math.cos(vehicle_state[2] - math.pi / 2.0)],
                                           [math.sin(vehicle_state[2] - math.pi / 2.0)]])
-        ef = np.dot(vec_dist_nearest_point.T, front_axle_vec_rot_90)
+        ef = np.dot(vec_dist_nearest_point.T, front_axle_vec_rot_90)  # x1 x2 y1 y2
 
         # heading error
         # NOTE: If your raceline is based on a different coordinate system you need to -+ pi/2 = 90 degrees
@@ -202,7 +202,7 @@ class LQRPlanner():
         matrix_q = [matrix_q_1, matrix_q_2, matrix_q_3, matrix_q_4]
         matrix_r = [matrix_r]
 
-        # Define a numpy array that includes the current vehicle state: x,y, theta, veloctiy
+        # Define a numpy array that includes the current vehicle state: x,y, theta, velocity
         vehicle_state = np.array([pose_x, pose_y, pose_theta, velocity])
 
         # Calculate the steering angle and the speed in the controller
