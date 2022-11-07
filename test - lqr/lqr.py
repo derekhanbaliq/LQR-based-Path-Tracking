@@ -129,9 +129,14 @@ class LQRPlanner():
 
         # Calculating current errors and reference points from reference trajectory
         theta_e, e_cg, yaw_ref, k_ref, v_ref = self.calc_control_points(vehicle_state, waypoints)
+        # theta_e: heading error
+        # e_cg: lateral cross-track error
+        # yaw_ref: target heading
+        # k_ref: target curvature
+        # v_ref: target velocity
 
         # Update the calculation matrix based on the current vehicle state
-        matrix_ad_, matrix_bd_ = update_matrix(vehicle_state, state_size, ts, self.wheelbase)  # not following
+        matrix_ad_, matrix_bd_ = update_matrix(vehicle_state, state_size, ts, self.wheelbase)
 
         matrix_state_ = np.zeros((state_size, 1))
         matrix_r_ = np.diag(matrix_r)
