@@ -67,7 +67,7 @@ class LQRPlanner():
 
         Returns:
             theta_e (float): heading error
-            e_cog (float): lateral crosstrack error
+            e_cog (float): lateral cross-track error
             theta_raceline (float): target heading
             kappa_ref (float): target curvature
             goal_veloctiy (float): target velocity
