@@ -200,6 +200,7 @@ def solve_lqr(A, B, Q, R, tolerance, max_num_iteration):
     while num_iteration < max_num_iteration and diff > tolerance:
         num_iteration += 1
         P_next = AT @ P @ A - (AT @ P @ B + M) @ np.linalg.pinv(R + BT @ P @ B) @ (BT @ P @ A + MT) + Q
+        # similar to Discrete Ricatti Equation but the M doesn't make sense?
 
         # check the difference between P and P_next
         diff = np.abs(np.max(P_next - P))

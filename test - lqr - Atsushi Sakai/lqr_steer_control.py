@@ -69,11 +69,11 @@ def solve_DARE(A, B, Q, R):
     """
     X = Q
     maxiter = 150
-    eps = 0.01
+    eps = 0.01  # tolerance epsilon
+    Xn = None
 
     for i in range(maxiter):
-        Xn = A.T @ X @ A - A.T @ X @ B @ \
-             la.inv(R + B.T @ X @ B) @ B.T @ X @ A + Q
+        Xn = Q + A.T @ X @ A - A.T @ X @ B @ la.inv(R + B.T @ X @ B) @ B.T @ X @ A
         if (abs(Xn - X)).max() < eps:
             break
         X = Xn
@@ -92,9 +92,9 @@ def dlqr(A, B, Q, R):
     X = solve_DARE(A, B, Q, R)
 
     # compute the LQR gain
-    K = la.inv(B.T @ X @ B + R) @ (B.T @ X @ A)
+    K = la.inv(B.T @ X @ B + R) @ (B.T @ X @ A)  # u = -(B.T @ S @ B + R)^(-1) @ (B.T @ S @ A) @ x[k], K is 4 x 1
 
-    eigVals, eigVecs = la.eig(A - B @ K)
+    eigVals, eigVecs = la.eig(A - B @ K)  # lambda_cl from A_cl
 
     return K, X, eigVals
 
@@ -128,8 +128,13 @@ def lqr_steering_control(state, cx, cy, cyaw, ck, pe, pth_e):
     x[2, 0] = th_e
     x[3, 0] = (th_e - pth_e) / dt
 
+    # wheelbase * curvature = wheelbase / radius ?
+    # = math.atan2(L / r, 1) = math.atan2(L, r) -> this can be drawn and understood easily
+    # a compensation angle from feed-forward path
     ff = math.atan2(L * k, 1)
-    fb = pi_2_pi((-K @ x)[0, 0])
+    fb = pi_2_pi((-K @ x)[0, 0])  # K is 4 x 1 since u is 1 x 1, control steering only!
+    print("ff = {}".format(ff))
+    print("fb = {}".format(fb))
 
     delta = ff + fb
 
@@ -179,13 +184,14 @@ def closed_loop_prediction(cx, cy, cyaw, ck, speed_profile, goal):
     e, e_th = 0.0, 0.0
 
     while T >= time:
+        # dl? target index, cross-tracking error, heading error
         dl, target_ind, e, e_th = lqr_steering_control(state, cx, cy, cyaw, ck, e, e_th)
 
-        ai = PIDControl(speed_profile[target_ind], state.v)
+        ai = PIDControl(speed_profile[target_ind], state.v)  # speed profile (sp) is the desired speed of nearst point
         state = update(state, ai, dl)
 
         if abs(state.v) <= stop_speed:
-            target_ind += 1
+            target_ind += 1  # the step is so close, pick the next one waypoint
 
         time = time + dt  # update time + 0.1s
 
