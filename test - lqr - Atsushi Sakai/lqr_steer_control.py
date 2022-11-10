@@ -127,6 +127,7 @@ def lqr_steering_control(state, cx, cy, cyaw, ck, pe, pth_e):
     x[1, 0] = (e - pe) / dt
     x[2, 0] = th_e
     x[3, 0] = (th_e - pth_e) / dt
+    print(x)
 
     # wheelbase * curvature = wheelbase / radius ?
     # = math.atan2(L / r, 1) = math.atan2(L, r) -> this can be drawn and understood easily

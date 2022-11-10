@@ -195,13 +195,13 @@ class LQRPlanner():
             steering_angle (float): desired steering angle
             speed (float): desired speed
         """
-        if waypoints is not None:
-            if waypoints.shape[1] < 5 or len(waypoints.shape) != 2:
-                raise ValueError('Waypoints needs to be a (Nxm), m >= 5, numpy array!')
-            self.waypoints = waypoints
-        else:
-            if self.waypoints is None:
-                raise ValueError('Please set waypoints to track during planner instantiation or when calling plan()')
+        # if waypoints is not None:
+        #     if waypoints.shape[1] < 5 or len(waypoints.shape) != 2:
+        #         raise ValueError('Waypoints needs to be a (Nxm), m >= 5, numpy array!')
+        #     self.waypoints = waypoints
+        # else:
+        #     if self.waypoints is None:
+        #         raise ValueError('Please set waypoints to track during planner instantiation or when calling plan()')
 
         # Define LQR Matrix and Parameter
         matrix_q = [matrix_q_1, matrix_q_2, matrix_q_3, matrix_q_4]
