@@ -4,24 +4,24 @@
 """
 
 
-class Waypoints:
+class Waypoint:
     pass
 
 
 class CarState:
 
-    def __init__(self, x=0.0, y=0.0, yaw=0.0, v=0.0):
+    def __init__(self, x=0.0, y=0.0, θ_h=0.0, v=0.0):
         self.x = x
         self.y = y
-        self.yaw = yaw
+        self.θ_h = θ_h
         self.v = v
 
 
-class ModelState:
+class LateralKinematicVehicleModelState:
 
-    def __init__(self, e_l, e_l_dot, θ, θ_dot):
+    def __init__(self, e_l, e_l_dot, e_θ, e_θ_dot):
         self.e_l = e_l
         self.e_l_dot = e_l_dot
-        self.θ = θ
-        self.θ_dot = θ_dot
+        self.e_θ = e_θ
+        self.e_θ_dot = e_θ_dot
 
