@@ -31,7 +31,7 @@ class LKVMParams:
     def __init__(self):
         self.dt = 0.01  # time step
         self.wheelbase = 0.33
-        self.recatti_max_iter = 150
+        self.recatti_max_iter = 100
         self.recatti_ε = 0.01  # tolerance epsilon
 
 
@@ -67,7 +67,8 @@ class LQR:
                            [0],
                            [0],
                            [v / params.wheelbase]])
-        self.Q = np.eye(4)
+        # self.Q = np.eye(4)
+        self.Q = np.diag([3, 1, 1, 1])
         self.R = np.eye(1)
 
     def discrete_lqr(self, params):
