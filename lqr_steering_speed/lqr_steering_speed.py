@@ -27,6 +27,9 @@ class CarState:
 
 
 class LKVMParams:
+    """
+    Linear Kinematic Vehicle Model's parameters
+    """
 
     def __init__(self):
         self.dt = 0.01  # time step
@@ -36,6 +39,9 @@ class LKVMParams:
 
 
 class LKVMState:
+    """
+    Linear Kinematic Vehicle Model's state space expression
+    """
 
     old_e_l = 0.0  # static variables for logging old errors
     old_e_θ = 0.0
@@ -68,13 +74,12 @@ class LQR:
                            [0],
                            [v / params.wheelbase]])
         # self.Q = np.eye(4)
-        self.Q = np.diag([3, 1, 1, 1])
+        self.Q = np.diag([3, 1, 1, 1])  # penalize more on e_l for Spielberg map
         self.R = np.eye(1)
 
     def discrete_lqr(self, params):
         A = self.A
         B = self.B
-        Q = self.Q
         R = self.R  # just for simplifying the following input expression
 
         S = self.solve_recatti_equation(params)
@@ -100,7 +105,7 @@ class LQR:
         return Sn
 
 
-class Controller:
+class LQRSteeringSpeedController:
 
     def __init__(self, waypoints):
         self.params = LKVMParams()
@@ -126,21 +131,22 @@ class Controller:
 
 
 def lqr_steering_control(params, waypoints, car, x):
+    """
+    LQR steering control for Lateral Kinematics Vehicle Model - only steering for this part, consider feedforward
+    """
+    # init A B Q R with the new car state
+    lqr = LQR(params, car.v)
 
-    lqr = LQR(params, car.v)  # init A, B, Q, R with the new car state
-
-    i, e_l = calc_nearest_index(waypoints, car)
     # return nearst waypoint index & min dist with dir (e > 0, curr pos is on the left of the nearst waypoint)
-    # nearst index & lateral error
+    i, e_l = calc_nearest_index(waypoints, car)  # nearst index & lateral error
 
+    e_θ = pi_2_pi(car.θ - waypoints.θ[i])  # heading error
     γ = waypoints.γ[i]  # curvature of nearst waypoint
-    e_θ = pi_2_pi(car.θ - waypoints.θ[i])  # θ_e
 
-    K = lqr.discrete_lqr(params)   # discrete LQR
+    K = lqr.discrete_lqr(params)
     x_new = x.update(e_l, e_θ, x.old_e_l, x.old_e_θ, params.dt)
     feedback_term = pi_2_pi((-K @ x_new)[0, 0])  # K is 4 x 1 since u is 1 x 1, control steering only!
 
-    # wheelbase * curvature = wheelbase / radius ?
     # = math.atan2(L / r, 1) = math.atan2(L, r) -> this can be drawn and understood easily
     # a compensation angle from feed-forward path
     feedforward_term = math.atan2(params.wheelbase * γ, 1)
@@ -148,12 +154,15 @@ def lqr_steering_control(params, waypoints, car, x):
     steering = feedback_term + feedforward_term
 
     x.old_e_l = e_l
-    x.old_e_θ = e_θ
+    x.old_e_θ = e_θ  # log into static variables
 
     return steering
 
 
 def pid_speed_control(waypoints, car):
+    """
+    Only P control is enough
+    """
     i, _ = calc_nearest_index(waypoints, car)
     Kp = 1
     speed = Kp * (waypoints.v[i] - car.v)  # desired speed - curr_spd
@@ -185,5 +194,4 @@ def calc_nearest_index(waypoints, car):
 
 
 def pi_2_pi(angle):
-
     return (angle + math.pi) % (2 * math.pi) - math.pi

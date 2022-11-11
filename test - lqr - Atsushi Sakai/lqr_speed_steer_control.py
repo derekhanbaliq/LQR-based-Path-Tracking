@@ -12,7 +12,7 @@ import numpy as np
 import scipy.linalg as la
 import pathlib
 
-sys.path.append(str(pathlib.Path(__file__).parent.parent.parent))
+# sys.path.append(str(pathlib.Path(__file__).parent.parent.parent))
 
 import cubic_spline_planner
 
@@ -38,6 +38,10 @@ class State:
 
 
 def update(state, a, delta):
+    """
+    update car state rather than the model state.
+    In gym, it's already been encapsulated in env.step(), observation will store the car state
+    """
     if delta >= max_steer:
         delta = max_steer
     if delta <= - max_steer:
@@ -65,8 +69,7 @@ def solve_dare(A, B, Q, R):
     eps = 0.01
 
     for i in range(max_iter):
-        x_next = A.T @ x @ A - A.T @ x @ B @ \
-                 la.inv(R + B.T @ x @ B) @ B.T @ x @ A + Q
+        x_next = A.T @ x @ A - A.T @ x @ B @ la.inv(R + B.T @ x @ B) @ B.T @ x @ A + Q
         if (abs(x_next - x)).max() < eps:
             break
         x = x_next
@@ -195,8 +198,8 @@ def do_simulation(cx, cy, cyaw, ck, speed_profile, goal):
     e, e_th = 0.0, 0.0
 
     while T >= time:
-        dl, target_ind, e, e_th, ai = lqr_speed_steering_control(
-            state, cx, cy, cyaw, ck, e, e_th, speed_profile, lqr_Q, lqr_R)
+        dl, target_ind, e, e_th, ai = \
+            lqr_speed_steering_control(state, cx, cy, cyaw, ck, e, e_th, speed_profile, lqr_Q, lqr_R)
 
         state = update(state, ai, dl)
 
@@ -279,33 +282,33 @@ def main():
 
     t, x, y, yaw, v = do_simulation(cx, cy, cyaw, ck, sp, goal)
 
-    if show_animation:  # pragma: no cover
-        plt.close()
-        plt.subplots(1)
-        plt.plot(ax, ay, "xb", label="waypoints")
-        plt.plot(cx, cy, "-r", label="target course")
-        plt.plot(x, y, "-g", label="tracking")
-        plt.grid(True)
-        plt.axis("equal")
-        plt.xlabel("x[m]")
-        plt.ylabel("y[m]")
-        plt.legend()
-
-        plt.subplots(1)
-        plt.plot(s, [np.rad2deg(iyaw) for iyaw in cyaw], "-r", label="yaw")
-        plt.grid(True)
-        plt.legend()
-        plt.xlabel("line length[m]")
-        plt.ylabel("yaw angle[deg]")
-
-        plt.subplots(1)
-        plt.plot(s, ck, "-r", label="curvature")
-        plt.grid(True)
-        plt.legend()
-        plt.xlabel("line length[m]")
-        plt.ylabel("curvature [1/m]")
-
-        plt.show()
+    # if show_animation:  # pragma: no cover
+    #     plt.close()
+    #     plt.subplots(1)
+    #     plt.plot(ax, ay, "xb", label="waypoints")
+    #     plt.plot(cx, cy, "-r", label="target course")
+    #     plt.plot(x, y, "-g", label="tracking")
+    #     plt.grid(True)
+    #     plt.axis("equal")
+    #     plt.xlabel("x[m]")
+    #     plt.ylabel("y[m]")
+    #     plt.legend()
+    #
+    #     plt.subplots(1)
+    #     plt.plot(s, [np.rad2deg(iyaw) for iyaw in cyaw], "-r", label="yaw")
+    #     plt.grid(True)
+    #     plt.legend()
+    #     plt.xlabel("line length[m]")
+    #     plt.ylabel("yaw angle[deg]")
+    #
+    #     plt.subplots(1)
+    #     plt.plot(s, ck, "-r", label="curvature")
+    #     plt.grid(True)
+    #     plt.legend()
+    #     plt.xlabel("line length[m]")
+    #     plt.ylabel("curvature [1/m]")
+    #
+    #     plt.show()
 
 
 if __name__ == '__main__':

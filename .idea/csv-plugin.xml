@@ -17,13 +17,6 @@
             </Attribute>
           </value>
         </entry>
-        <entry key="\lqr\icra_raceline.csv">
-          <value>
-            <Attribute>
-              <option name="separator" value=";" />
-            </Attribute>
-          </value>
-        </entry>
         <entry key="\test - lqr\Spielberg_raceline.csv">
           <value>
             <Attribute>

@@ -2,11 +2,9 @@
     MEAM 517 Final Project - LQR Steering Control - main application
     Author: Derek Zhou & Tancy Zhao
 """
-
-
 import gym
 import numpy as np
-from lqr import Waypoint, Controller
+from lqr_steering import Waypoint, LQRSteeringController
 
 
 def main():
@@ -15,7 +13,7 @@ def main():
     csv_file = 'Spielberg_raceline.csv'
     csv_data = np.loadtxt('./' + csv_file, delimiter=';', skiprows=0)
     waypoints = Waypoint(csv_data)
-    controller = Controller(waypoints)
+    controller = LQRSteeringController(waypoints)
 
     # create env & init
     map_name = 'Spielberg_map'
