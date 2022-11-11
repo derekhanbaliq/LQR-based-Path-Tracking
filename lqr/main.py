@@ -30,7 +30,6 @@ def main():
         obs, time_step, done, _ = env.step(np.array([[steering, speed]]))
         lap_time += time_step
         env.render(mode='human')
-        done = True
 
     print('Sim elapsed time:', lap_time)
 

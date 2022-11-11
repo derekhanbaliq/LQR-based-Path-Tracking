@@ -154,7 +154,7 @@ def lqr_steering_control(params, waypoints, car, x):
 
 def pid_speed_control(waypoints, car):
     i, _ = calc_nearest_index(waypoints, car)
-    Kp = 0.2
+    Kp = 1
     speed = Kp * (waypoints.v[i] - car.v)  # desired speed - curr_spd
 
     return speed
