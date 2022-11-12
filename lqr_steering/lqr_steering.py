@@ -1,9 +1,10 @@
 """
     MEAM 517 Final Project - LQR Steering Control - LQR class
     Author: Derek Zhou & Tancy Zhao
+    References: https://github.com/AtsushiSakai/PythonRobotics/tree/master/PathTracking/lqr_steer_control
+                https://github.com/f1tenth/f1tenth_planning/tree/main/f1tenth_planning/control/lqr
 """
 import numpy as np
-import scipy.linalg as la
 import math
 
 
@@ -74,7 +75,7 @@ class LQR:
                            [0],
                            [v / params.wheelbase]])
         # self.Q = np.eye(4)
-        self.Q = np.diag([3, 1, 1, 1])  # penalize more on e_l for Spielberg map
+        self.Q = np.diag([5, 1, 1, 1])  # penalize more on e_l for Spielberg map
         self.R = np.eye(1)
 
     def discrete_lqr(self, params):
@@ -83,9 +84,9 @@ class LQR:
         R = self.R  # just for simplifying the following input expression
 
         S = self.solve_recatti_equation(params)
-        K = la.inv(B.T @ S @ B + R) @ (B.T @ S @ A)  # u = -(B.T @ S @ B + R)^(-1) @ (B.T @ S @ A) @ x[k], K is 4 x 1
+        K = np.linalg.inv(B.T @ S @ B + R) @ (B.T @ S @ A)  # u = -(B.T @ S @ B + R)^(-1) @ (B.T @ S @ A) @ x[k]
 
-        return K
+        return K  # K is 4 x 1
 
     def solve_recatti_equation(self, params):
         A = self.A
@@ -97,7 +98,7 @@ class LQR:
         Sn = None
 
         for i in range(params.recatti_max_iter):
-            Sn = Q + A.T @ S @ A - (A.T @ S @ B) @ la.inv(R + B.T @ S @ B) @ (B.T @ S @ A)
+            Sn = Q + A.T @ S @ A - (A.T @ S @ B) @ np.linalg.inv(R + B.T @ S @ B) @ (B.T @ S @ A)
             if abs(Sn - S).max() < params.recatti_ε:
                 break
             S = Sn

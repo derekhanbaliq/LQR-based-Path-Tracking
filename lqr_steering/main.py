@@ -1,6 +1,8 @@
 """
     MEAM 517 Final Project - LQR Steering Control - main application
     Author: Derek Zhou & Tancy Zhao
+    References: https://github.com/f1tenth/f1tenth_gym/tree/main/examples
+                https://github.com/f1tenth/f1tenth_planning/tree/main/f1tenth_planning/control/lqr
 """
 import gym
 import numpy as np
@@ -21,16 +23,17 @@ def main():
     init_pos = np.array([[0.0, -0.84, 3.40]])
     obs, _, done, _ = env.reset(init_pos)
 
+    # log data
     # log_steering = []
     # log_speed = []
 
     lap_time = 0.0
     while not done:
         steering, speed = controller.control(obs)  # each agent’s current observation
-        print("steering = {}, speed = {}".format(steering, speed))
-        obs, time_step, done, _ = env.step(np.array([[steering, speed]]))
+        # print("steering = {}, speed = {}".format(steering, speed))
         # log_steering.append(steering)
         # log_speed.append(speed)
+        obs, time_step, done, _ = env.step(np.array([[steering, speed]]))
         lap_time += time_step
         env.render(mode='human')
 
