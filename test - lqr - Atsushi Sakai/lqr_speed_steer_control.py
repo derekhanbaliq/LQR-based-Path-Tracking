@@ -126,7 +126,7 @@ def lqr_speed_steering_control(state, cx, cy, cyaw, ck, pe, pth_e, sp, Q, R):
     B[3, 0] = v / L
     B[4, 1] = dt
 
-    K, _, _ = dlqr(A, B, Q, R)
+    K, _, _ = dlqr(A, B, Q, R)  # K is 2 x 5
 
     # state vector
     # x = [e, dot_e, th_e, dot_th_e, delta_v]
@@ -146,7 +146,7 @@ def lqr_speed_steering_control(state, cx, cy, cyaw, ck, pe, pth_e, sp, Q, R):
     # u = [delta, accel]
     # delta: steering angle
     # accel: acceleration
-    ustar = -K @ x
+    ustar = -K @ x  # 2 x 5 @ 5 x 1 = 2 x 1
 
     # calc steering input
     ff = math.atan2(L * k, 1)  # feedforward steering angle
