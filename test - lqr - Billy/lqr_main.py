@@ -53,8 +53,9 @@ def main():
                                     obs['poses_y'][0],
                                     obs['poses_theta'][0],  # dir
                                     obs['linear_vels_x'][0])  # each agent’s current longitudinal velocity
+        print("steering = {}, speed = {}".format(steer, speed))
         obs, timestep, done, _ = env.step(np.array([[steer, speed]]))
-        print("timestep = {}".format(timestep))
+        # print("timestep = {}".format(timestep))
         laptime += timestep
         env.render(mode='human')
 

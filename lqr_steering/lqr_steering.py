@@ -6,6 +6,7 @@
 """
 import numpy as np
 import math
+from pyglet.gl import GL_POINTS  # game interface
 
 
 class Waypoint:
@@ -73,7 +74,8 @@ class LQR:
                            [0],
                            [v / params.wheelbase]])
         # self.Q = np.eye(4)
-        self.Q = np.diag([5, 1, 1, 1])  # penalize more on e_l for Spielberg map
+        # self.Q = np.diag([5, 1, 1, 1])  # penalize more on e_l for Spielberg map - 4m/s works fine
+        self.Q = np.diag([1, 1, 1, 1])
         self.R = np.eye(1)
 
     def discrete_lqr(self):
@@ -131,6 +133,32 @@ class LQRSteeringController:
         return steering, speed
 
 
+class Renderer:
+
+    def __init__(self, waypoints):
+        self.waypoints = waypoints
+        self.drawn_waypoints = []
+
+    def render_waypoints(self, e):
+        """
+        update waypoints being drawn by EnvRenderer
+        """
+
+        # points = self.waypoints
+
+        points = np.vstack((self.waypoints.x, self.waypoints.y)).T  # N x 2
+
+        scaled_points = 50. * points
+
+        for i in range(points.shape[0]):
+            if len(self.drawn_waypoints) < points.shape[0]:
+                b = e.batch.add(1, GL_POINTS, None, ('v3f/stream', [scaled_points[i, 0], scaled_points[i, 1], 0.]),
+                                ('c3B/stream', [183, 193, 222]))
+                self.drawn_waypoints.append(b)
+            else:
+                self.drawn_waypoints[i].vertices = [scaled_points[i, 0], scaled_points[i, 1], 0.]
+
+
 def lqr_steering_control(params, waypoints, car, x):
     """
     LQR steering control for Lateral Kinematics Vehicle Model - only steering for this part, consider feedforward
@@ -165,6 +193,7 @@ def pid_speed_control(waypoints, car):
     i, _ = calc_nearest_index(waypoints, car)
     Kp = 1
     speed = Kp * (waypoints.v[i] - car.v)  # desired speed - curr_spd
+    speed = 8.0  # just for debugging
 
     return speed
 

@@ -158,7 +158,7 @@ class PurePursuitPlanner:
         self.waypoints = None
         self.wheelbase = wb
         self.conf = conf
-        self.load_waypoints(conf)  # why????
+        self.load_waypoints(conf)
         self.max_reacquire = 20.  # what????
 
         self.drawn_waypoints = []
