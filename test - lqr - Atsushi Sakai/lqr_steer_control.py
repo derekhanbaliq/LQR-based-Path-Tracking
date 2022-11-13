@@ -92,7 +92,7 @@ def dlqr(A, B, Q, R):
     X = solve_DARE(A, B, Q, R)
 
     # compute the LQR gain
-    K = la.inv(B.T @ X @ B + R) @ (B.T @ X @ A)  # u = -(B.T @ S @ B + R)^(-1) @ (B.T @ S @ A) @ x[k], K is 4 x 1
+    K = -la.inv(B.T @ X @ B + R) @ (B.T @ X @ A)  # u = -(B.T @ S @ B + R)^(-1) @ (B.T @ S @ A) @ x[k], K is 4 x 1
 
     eigVals, eigVecs = la.eig(A - B @ K)  # lambda_cl from A_cl
 
@@ -106,7 +106,8 @@ def lqr_steering_control(state, cx, cy, cyaw, ck, pe, pth_e):
 
     k = ck[ind]  # curvature of nearst waypoint
     v = state.v  # state velocity
-    th_e = pi_2_pi(state.yaw - cyaw[ind])  # θ_e
+    # th_e = pi_2_pi(state.yaw - cyaw[ind])  # θ_e
+    th_e = pi_2_pi(cyaw[ind] - state.yaw)
 
     A = np.zeros((4, 4))
     A[0, 0] = 1.0
@@ -127,17 +128,19 @@ def lqr_steering_control(state, cx, cy, cyaw, ck, pe, pth_e):
     x[1, 0] = (e - pe) / dt
     x[2, 0] = th_e
     x[3, 0] = (th_e - pth_e) / dt
-    print(x)
+    # print(x)
 
     # wheelbase * curvature = wheelbase / radius ?
     # = math.atan2(L / r, 1) = math.atan2(L, r) -> this can be drawn and understood easily
     # a compensation angle from feed-forward path
-    ff = math.atan2(L * k, 1)
-    fb = pi_2_pi((-K @ x)[0, 0])  # K is 4 x 1 since u is 1 x 1, control steering only!
+    # ff = math.atan2(L * k, 1)
+    ff = L * k
+    # fb = pi_2_pi((-K @ x)[0, 0])  # K is 4 x 1 since u is 1 x 1, control steering only!
+    fb = (K @ x)[0, 0]
     print("ff = {}".format(ff))
     print("fb = {}".format(fb))
 
-    delta = ff + fb
+    delta = ff - fb
 
     return delta, ind, e, th_e
 
@@ -162,7 +165,7 @@ def calc_nearest_index(state, cx, cy, cyaw):
     # limited in [-π/2, π/2]
     # it's not θ_e
     angle = pi_2_pi(cyaw[ind] - math.atan2(dyl, dxl))
-    if angle < 0:  # < 0, curr pos is on the right of the nearst way point dir
+    if angle > 0:  # < 0, curr pos is on the right of the nearst way point dir
         mind *= -1
 
     return ind, mind  # index & lateral error

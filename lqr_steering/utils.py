@@ -1,8 +1,7 @@
 """
     MEAM 517 Final Project - LQR Steering Control - LQR class
     Author: Derek Zhou & Tancy Zhao
-    References: https://github.com/AtsushiSakai/PythonRobotics/tree/master/PathTracking/lqr_steer_control
-                https://github.com/f1tenth/f1tenth_planning/tree/main/f1tenth_planning/control/lqr
+    References: https://github.com/f1tenth/f1tenth_gym/tree/main/examples
 """
 
 import numpy as np

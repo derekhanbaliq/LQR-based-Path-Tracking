@@ -4,6 +4,7 @@
     References: https://github.com/AtsushiSakai/PythonRobotics/tree/master/PathTracking/lqr_steer_control
                 https://github.com/f1tenth/f1tenth_planning/tree/main/f1tenth_planning/control/lqr
 """
+
 import numpy as np
 import math
 from utils import calc_nearest_point, pi_2_pi
@@ -66,22 +67,17 @@ class LQR:
                            [0],
                            [0],
                            [v / wheelbase]])
-        self.Q = np.diag([0.999, 0.0, 0.0066, 0.0])
+        # self.Q = np.diag([0.999, 0.0, 0.0066, 0.0])  # Billy's code recommendation
+        self.Q = np.diag([1, 0.0, 0.01, 0.0])
         self.R = np.diag([0.75])
 
     def discrete_lqr(self):
         A = self.A
         B = self.B
-        self.Q = np.diag([0.999, 0.0, 0.0066, 0.0])
-        self.R = np.diag([0.75])
-        Q = self.Q
         R = self.R
 
-        M = np.zeros((Q.shape[0], R.shape[1]))
-        MT = M.T
-
         S = self.solve_recatti_equation()
-        K = np.linalg.pinv(B.T @ S @ B + R) @ (B.T @ S @ A + MT)  # u = -(B.T @ S @ B + R)^(-1) @ (B.T @ S @ A) @ x[k]
+        K = -np.linalg.pinv(B.T @ S @ B + R) @ (B.T @ S @ A)  # u = -(B.T @ S @ B + R)^(-1) @ (B.T @ S @ A) @ x[k]
 
         return K  # K is 4 x 1
 
@@ -94,23 +90,19 @@ class LQR:
         S = self.Q
         Sn = None
 
-        M = np.zeros((Q.shape[0], R.shape[1]))
-        MT = M.T
-
-        max_iter = 50
+        max_iter = 100
         ε = 0.001  # tolerance epsilon
+        diff = math.inf  # always use value iteration with max iteration!
 
-        num_iteration = 0
-        diff = math.inf  # without using iteration!
-        tolerance = 0.001
+        # print('S0 = Q = {}'.format(self.Q))
 
-        while num_iteration < max_iter and diff > tolerance:
-            num_iteration += 1
-        # for i in range(max_iter):
-            Sn = Q + A.T @ S @ A - (A.T @ S @ B + M) @ np.linalg.pinv(R + B.T @ S @ B) @ (B.T @ S @ A + MT)
-            if abs(Sn - S).max() < ε:
-                break
+        i = 0
+        while i < max_iter and diff > ε:
+            i += 1
+            Sn = Q + A.T @ S @ A - (A.T @ S @ B) @ np.linalg.pinv(R + B.T @ S @ B) @ (B.T @ S @ A)
             S = Sn
+
+        # print('Sn = {}'.format(Sn))
 
         return Sn
 
@@ -150,25 +142,16 @@ class LQRSteeringController:
 
         e_l, e_θ, γ, v = self.calc_control_points()  # Calculate errors and reference point
 
-        # print(e_l)
-        # print(e_θ)
-        # print(γ)
-        # print(v)
-        # print("---")
-
         lqr = LQR(self.dt, self.wheelbase, self.car.v)  # init A B Q R with the current car state
         K = lqr.discrete_lqr()  # use A, B, Q, R to get K
-        print(K)
 
         x_new = self.x.update(e_l, e_θ, self.dt)  # x[k+1]
-        # print(x_new)
 
-        # feedback_term = pi_2_pi((-K @ x_new)[0, 0])  # K is 4 x 1 since u is 1 x 1, control steering only! - u_star
-        feedback_term = (K @ x_new)[0, 0]
+        feedback_term = (K @ x_new)[0, 0]  # K is 4 x 1 since u is 1 x 1, look out the signal of K!
         # feedforward_term = math.atan2(self.wheelbase * γ, 1)  # = math.atan2(L / r, 1) = math.atan2(L, r)
         feedforward_term = self.wheelbase * γ
 
-        steering = feedback_term + feedforward_term
+        steering = - feedback_term + feedforward_term
 
         return steering
 
@@ -181,7 +164,6 @@ class LQRSteeringController:
 
         Kp = 1
         # speed = Kp * (self.waypoints.v[i] - self.car.v)  # desired speed - curr_spd
-        # speed = 8.0  # just for debugging
         speed = self.waypoints.v[i]
 
         return speed
@@ -198,7 +180,6 @@ class LQRSteeringController:
 
         waypoint_i, min_d, _, i = \
             calc_nearest_point(front_pos, np.array([self.waypoints.x, self.waypoints.y]).T)
-        # print(np.array([self.waypoints.x, self.waypoints.y]).T)
 
         waypoint_to_front = front_pos - waypoint_i  # regard this as a vector
 
@@ -206,7 +187,6 @@ class LQRSteeringController:
                                           [math.sin(self.car.θ - math.pi / 2.0)]])
         e_l = np.dot(waypoint_to_front.T, front_axle_vec_rot_90)  # real lateral error, the horizontal dist
 
-        # NOTE: If your raceline is based on a different coordinate system you need to -+ pi/2 = 90 degrees
         e_θ = pi_2_pi(self.waypoints.θ[i] - self.car.θ)  # heading error
         γ = self.waypoints.γ[i]  # curvature of the nearst waypoint
         v = self.waypoints.v[i]  # velocity of the nearst waypoint

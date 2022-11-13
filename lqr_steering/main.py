@@ -1,13 +1,16 @@
 """
     MEAM 517 Final Project - LQR Steering Control - main application
     Author: Derek Zhou & Tancy Zhao
-    References: https://github.com/f1tenth/f1tenth_gym/tree/main/examples
+    References: https://f1tenth-gym.readthedocs.io/en/latest/index.html
+                https://github.com/f1tenth/f1tenth_gym/tree/main/examples
                 https://github.com/f1tenth/f1tenth_planning/tree/main/f1tenth_planning/control/lqr
+                https://github.com/AtsushiSakai/PythonRobotics/tree/master/PathTracking/lqr_steer_control
 """
+
 import gym
 import numpy as np
 from lqr_steering import Waypoint, LQRSteeringController, Renderer
-# from log import write_xlsx
+from log import xlsx_log_action, xlsx_log_observation
 
 
 def main():
@@ -31,23 +34,27 @@ def main():
     init_pos = np.array([[0.0, -0.84, 3.40]])
     obs, _, done, _ = env.reset(init_pos)
 
-    # log data
-    # log_steering = []
-    # log_speed = []
+    # placeholder for logging, plotting, and debugging
+    log_action = []
+    log_obs = []
 
     lap_time = 0.0
+
+    # while lap_time < 3:  # testing log
     while not done:
-    # while lap_time < 0.02:
         steering, speed = controller.control(obs)  # each agent’s current observation
-        print("steering = {}, speed = {}".format(steering, speed))
-        # log_steering.append(steering)
-        # log_speed.append(speed)
+        print("steering = {}, speed = {}".format(round(steering, 5), speed))
+        log_action.append([lap_time, steering, speed])
+
         obs, time_step, done, _ = env.step(np.array([[steering, speed]]))
+        log_obs.append([lap_time, obs['poses_x'][0], obs['poses_y'][0], obs['poses_theta'][0], obs['linear_vels_x'][0]])
+
         lap_time += time_step
         env.render(mode='human')
 
     print('Sim elapsed time:', lap_time)
-    # write_xlsx(log_steering)
+    xlsx_log_action(log_action)
+    xlsx_log_observation(log_obs)
 
 
 if __name__ == '__main__':
