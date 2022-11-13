@@ -9,6 +9,6 @@ gym/f110_gym/unittest/centerline/
 docs/_build/
 *.mypy_cache/
 flycheck_*
-"test - lqr - Atsushi Sakai"/*
-"test - lqr - Billy"/*
-"test - icra map"/*
+test_lqr_Atsushi_Sakai/*
+test_lqr_Billy/*
+test_icra_map/*
