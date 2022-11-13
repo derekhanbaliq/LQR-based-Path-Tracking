@@ -7,6 +7,7 @@
 import gym
 import numpy as np
 from lqr_steering import Waypoint, LQRSteeringController, Renderer
+# from log import write_xlsx
 
 
 def main():
@@ -36,6 +37,7 @@ def main():
 
     lap_time = 0.0
     while not done:
+    # while lap_time < 0.02:
         steering, speed = controller.control(obs)  # each agent’s current observation
         print("steering = {}, speed = {}".format(steering, speed))
         # log_steering.append(steering)
@@ -45,6 +47,7 @@ def main():
         env.render(mode='human')
 
     print('Sim elapsed time:', lap_time)
+    # write_xlsx(log_steering)
 
 
 if __name__ == '__main__':

@@ -77,8 +77,11 @@ class LQR:
         Q = self.Q
         R = self.R
 
+        M = np.zeros((Q.shape[0], R.shape[1]))
+        MT = M.T
+
         S = self.solve_recatti_equation()
-        K = np.linalg.pinv(B.T @ S @ B + R) @ (B.T @ S @ A)  # u = -(B.T @ S @ B + R)^(-1) @ (B.T @ S @ A) @ x[k]
+        K = np.linalg.pinv(B.T @ S @ B + R) @ (B.T @ S @ A + MT)  # u = -(B.T @ S @ B + R)^(-1) @ (B.T @ S @ A) @ x[k]
 
         return K  # K is 4 x 1
 
@@ -91,10 +94,20 @@ class LQR:
         S = self.Q
         Sn = None
 
-        max_iter = 100
+        M = np.zeros((Q.shape[0], R.shape[1]))
+        MT = M.T
+
+        max_iter = 50
         ε = 0.001  # tolerance epsilon
-        for i in range(max_iter):
-            Sn = Q + A.T @ S @ A - (A.T @ S @ B) @ np.linalg.inv(R + B.T @ S @ B) @ (B.T @ S @ A)
+
+        num_iteration = 0
+        diff = math.inf  # without using iteration!
+        tolerance = 0.001
+
+        while num_iteration < max_iter and diff > tolerance:
+            num_iteration += 1
+        # for i in range(max_iter):
+            Sn = Q + A.T @ S @ A - (A.T @ S @ B + M) @ np.linalg.pinv(R + B.T @ S @ B) @ (B.T @ S @ A + MT)
             if abs(Sn - S).max() < ε:
                 break
             S = Sn
@@ -137,10 +150,18 @@ class LQRSteeringController:
 
         e_l, e_θ, γ, v = self.calc_control_points()  # Calculate errors and reference point
 
+        # print(e_l)
+        # print(e_θ)
+        # print(γ)
+        # print(v)
+        # print("---")
+
         lqr = LQR(self.dt, self.wheelbase, self.car.v)  # init A B Q R with the current car state
         K = lqr.discrete_lqr()  # use A, B, Q, R to get K
+        print(K)
 
         x_new = self.x.update(e_l, e_θ, self.dt)  # x[k+1]
+        # print(x_new)
 
         # feedback_term = pi_2_pi((-K @ x_new)[0, 0])  # K is 4 x 1 since u is 1 x 1, control steering only! - u_star
         feedback_term = (K @ x_new)[0, 0]
@@ -159,8 +180,9 @@ class LQRSteeringController:
         _, _, _, i = calc_nearest_point(front_pos, np.array([self.waypoints.x, self.waypoints.y]).T)
 
         Kp = 1
-        speed = Kp * (self.waypoints.v[i] - self.car.v)  # desired speed - curr_spd
-        speed = 8.0  # just for debugging
+        # speed = Kp * (self.waypoints.v[i] - self.car.v)  # desired speed - curr_spd
+        # speed = 8.0  # just for debugging
+        speed = self.waypoints.v[i]
 
         return speed
 

@@ -31,6 +31,27 @@ import numpy as np
 import gym
 
 from lqr import LQRPlanner
+import xlsxwriter
+
+
+def write_xlsx(steering):
+    workbook = xlsxwriter.Workbook('steering_speed.xlsx')
+    worksheet = workbook.add_worksheet()
+
+    row = 0
+    column = 0
+
+    # iterating through content list
+    for item in steering:
+
+        # write operation perform
+        worksheet.write(row, column, item)
+
+        # incrementing the value of row by one
+        # with each iterations.
+        row += 1
+
+    workbook.close()
 
 
 def main():
@@ -47,19 +68,25 @@ def main():
     env = gym.make('f110_gym:f110-v0', map='./Spielberg_map', map_ext='.png', num_agents=1)
     obs, _, done, _ = env.reset(np.array([[0.0, -0.84, 3.40]]))
 
+    # log data
+    log_steering = []
+
     laptime = 0.0
     while not done:
+    # while laptime < 0.02:
         steer, speed = planner.plan(obs['poses_x'][0],  # pos
                                     obs['poses_y'][0],
                                     obs['poses_theta'][0],  # dir
                                     obs['linear_vels_x'][0])  # each agent’s current longitudinal velocity
-        print("steering = {}, speed = {}".format(steer, speed))
+        # print("steering = {}, speed = {}".format(steer, speed))
         obs, timestep, done, _ = env.step(np.array([[steer, speed]]))
         # print("timestep = {}".format(timestep))
         laptime += timestep
         env.render(mode='human')
+        log_steering.append(steer)
 
     print('Sim elapsed time:', laptime)
+    write_xlsx(log_steering)
 
 
 if __name__ == '__main__':

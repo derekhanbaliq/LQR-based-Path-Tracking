@@ -188,6 +188,7 @@ def solve_lqr(A, B, Q, R, tolerance, max_num_iteration):
     """
 
     M = np.zeros((Q.shape[0], R.shape[1]))
+    # print(M)
 
     AT = A.T
     BT = B.T

@@ -101,6 +101,8 @@ class LQRPlanner():
         self.vehicle_control_e_cog = ef[0]
         self.vehicle_control_theta_e = theta_e
 
+        print(goal_veloctiy)
+
         return theta_e, ef[0], theta_raceline, kappa_ref, goal_veloctiy
 
     def controller(self, vehicle_state, waypoints, ts, matrix_q, matrix_r, max_iteration, eps):
@@ -135,6 +137,11 @@ class LQRPlanner():
         # yaw_ref: target heading
         # k_ref: target curvature
         # v_ref: target velocity
+        # print(e_cg)
+        # print(theta_e)
+        # print(k_ref)
+        # print(v_ref)
+        # print("---")
 
         # Update the calculation matrix based on the current vehicle state
         matrix_ad_, matrix_bd_ = update_matrix(vehicle_state, state_size, ts, self.wheelbase)
@@ -144,11 +151,13 @@ class LQRPlanner():
         matrix_q_ = np.diag(matrix_q)
 
         matrix_k_ = solve_lqr(matrix_ad_, matrix_bd_, matrix_q_, matrix_r_, eps, max_iteration)
+        # print(matrix_k_)
 
         matrix_state_[0][0] = e_cg
         matrix_state_[1][0] = (e_cg - e_cog_old) / ts
         matrix_state_[2][0] = theta_e
         matrix_state_[3][0] = (theta_e - theta_e_old) / ts
+        # print(matrix_state_)
 
         steer_angle_feedback = (matrix_k_ @ matrix_state_)[0][0]
 
