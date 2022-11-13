@@ -78,6 +78,7 @@ class LQRPlanner():
         fy = vehicle_state[1] + self.wheelbase * math.sin(vehicle_state[2])
         position_front_axle = np.array([fx, fy])
         nearest_point_front, nearest_dist, t, target_index = nearest_point(position_front_axle, self.waypoints[:, 0:2])
+        # print(self.waypoints[:, 0:2])
         vec_dist_nearest_point = position_front_axle - nearest_point_front  # vector, from NPF to PFA
 
         # crosstrack error - ???? definition is a bit different from web's

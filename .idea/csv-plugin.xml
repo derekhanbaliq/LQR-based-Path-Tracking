@@ -10,13 +10,6 @@
             </Attribute>
           </value>
         </entry>
-        <entry key="\lqr_steering - example map\example_waypoints.csv">
-          <value>
-            <Attribute>
-              <option name="separator" value=";" />
-            </Attribute>
-          </value>
-        </entry>
         <entry key="\lqr_steering\Spielberg_raceline.csv">
           <value>
             <Attribute>
@@ -24,7 +17,7 @@
             </Attribute>
           </value>
         </entry>
-        <entry key="\test - lqr\Spielberg_raceline.csv">
+        <entry key="\test - lqr - Billy\Spielberg_raceline.csv">
           <value>
             <Attribute>
               <option name="separator" value=";" />
