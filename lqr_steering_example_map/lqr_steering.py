@@ -126,7 +126,6 @@ class LQRSteeringController:
         self.car.θ = curr_obs['poses_theta'][0]
         self.car.v = curr_obs['linear_vels_x'][0]  # each agent’s current longitudinal velocity
 
-        # input car_state, waypoints, timestep, matrix_q, matrix_r, iterations, eps)
         steering = self.lqr_steering_control()
         speed = self.pid_speed_control()
 

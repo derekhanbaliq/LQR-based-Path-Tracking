@@ -31,6 +31,13 @@
             </Attribute>
           </value>
         </entry>
+        <entry key="\lqr_steering_speed\Spielberg_raceline.csv">
+          <value>
+            <Attribute>
+              <option name="separator" value=";" />
+            </Attribute>
+          </value>
+        </entry>
       </map>
     </option>
   </component>

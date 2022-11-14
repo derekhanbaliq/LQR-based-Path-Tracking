@@ -14,10 +14,10 @@ from pyglet.gl import GL_POINTS  # game interface
 class Waypoint:
 
     def __init__(self, csv_data=None):
-        self.x = csv_data[:, 1]
-        self.y = csv_data[:, 2]
-        self.v = csv_data[:, 5]
-        self.θ = csv_data[:, 3] + math.pi / 2  # coordinate matters!
+        self.x = csv_data[:, 0]
+        self.y = csv_data[:, 1]
+        self.v = csv_data[:, 2]
+        self.θ = csv_data[:, 3]
         self.γ = csv_data[:, 4]
 
 
@@ -35,41 +35,44 @@ class LKVMState:
     Linear Kinematic Vehicle Model's state space expression
     """
 
-    def __init__(self, e_l=0.0, e_l_dot=0.0, e_θ=0.0, e_θ_dot=0.0):
+    def __init__(self, e_l=0.0, e_l_dot=0.0, e_θ=0.0, e_θ_dot=0.0, v=0.0):
         # 4 states
         self.e_l = e_l
         self.e_l_dot = e_l_dot
         self.e_θ = e_θ
         self.e_θ_dot = e_θ_dot
+        self.e_v = v
         # log old states
         self.old_e_l = 0.0
         self.old_e_θ = 0.0
 
-    def update(self, e_l, e_θ, dt):
+    def update(self, e_l, e_θ, e_v, dt):  # pack-up rather than calc
         self.e_l = e_l
         self.e_l_dot = (e_l - self.old_e_l) / dt
         self.e_θ = e_θ
         self.e_θ_dot = (e_θ - self.old_e_θ) / dt
+        self.e_v = e_v  # e_l, e_θ, e_v have been calculated previously
 
-        x = np.vstack([self.e_l, self.e_l_dot, self.e_θ, self.e_θ_dot])
+        x = np.vstack([self.e_l, self.e_l_dot, self.e_θ, self.e_θ_dot, self.e_v])
 
         return x
 
 
 class LQR:
 
-    def __init__(self, dt, wheelbase, v=0.0):
-        self.A = np.array([[1.0,     dt,        0,          0],
-                           [0,       0,         v,          0],
-                           [0,       0,         1,          dt],
-                           [0,       0,         0,          0]])
-        self.B = np.array([[0],
-                           [0],
-                           [0],
-                           [v / wheelbase]])
-        # self.Q = np.diag([0.999, 0.0, 0.0066, 0.0])  # Billy's code recommendation
-        self.Q = np.diag([1, 0.0, 0.01, 0.0])
-        self.R = np.diag([0.75])
+    def __init__(self, dt, l_wb, v=0.0):
+        self.A = np.array([[1.0,    dt,     0,       0,         0],
+                           [0,      0,      v,       0,         0],
+                           [0,      0,      1.0,     dt,        0],
+                           [0,      0,      0,       0,         0],
+                           [0,      0,      0,       0,         1.0]])
+        self.B = np.array([[0,          0],
+                           [0,          0],
+                           [0,          0],
+                           [v / l_wb,   0],
+                           [0,          dt]])  # l_wb is wheelbase
+        self.Q = np.diag([1, 0.0, 0.01, 0.0, 1])
+        self.R = np.diag([1, 1])
 
     def discrete_lqr(self):
         A = self.A
@@ -79,7 +82,7 @@ class LQR:
         S = self.solve_recatti_equation()
         K = -np.linalg.pinv(B.T @ S @ B + R) @ (B.T @ S @ A)  # u = -(B.T @ S @ B + R)^(-1) @ (B.T @ S @ A) @ x[k]
 
-        return K  # K is 4 x 1
+        return K  # K is 2 x 5
 
     def solve_recatti_equation(self):
         A = self.A
@@ -94,7 +97,7 @@ class LQR:
         ε = 0.001  # tolerance epsilon
         diff = math.inf  # always use value iteration with max iteration!
 
-        # print('S0 = Q = {}'.format(self.Q))
+        print('S0 = Q = {}'.format(self.Q))
 
         i = 0
         while i < max_iter and diff > ε:
@@ -102,12 +105,12 @@ class LQR:
             Sn = Q + A.T @ S @ A - (A.T @ S @ B) @ np.linalg.pinv(R + B.T @ S @ B) @ (B.T @ S @ A)
             S = Sn
 
-        # print('Sn = {}'.format(Sn))
+        print('Sn = {}'.format(Sn))
 
         return Sn
 
 
-class LQRSteeringController:
+class LQRSteeringSpeedController:
 
     def __init__(self, waypoints):
         self.dt = 0.01  # time step
@@ -126,46 +129,35 @@ class LQRSteeringController:
         self.car.θ = curr_obs['poses_theta'][0]
         self.car.v = curr_obs['linear_vels_x'][0]  # each agent’s current longitudinal velocity
 
-        steering = self.lqr_steering_control()
-        speed = self.pid_speed_control()
+        steering, speed = self.lqr_steering_speed_control()
 
         return steering, speed
 
-    def lqr_steering_control(self):
+    def lqr_steering_speed_control(self):
         """
-        LQR steering control for Lateral Kinematics Vehicle Model - only steering for this part, consider feedforward
+        LQR steering speed control for Lateral Kinematics Vehicle Model
         """
 
         self.x.old_e_l = self.x.e_l
         self.x.old_e_θ = self.x.e_θ  # log into x's static variables
 
-        e_l, e_θ, γ, v = self.calc_control_points()  # Calculate errors and reference point
+        e_l, e_θ, γ, e_v = self.calc_control_points()  # Calculate errors and reference point
 
         lqr = LQR(self.dt, self.wheelbase, self.car.v)  # init A B Q R with the current car state
         K = lqr.discrete_lqr()  # use A, B, Q, R to get K
 
-        x_new = self.x.update(e_l, e_θ, self.dt)  # x[k+1]
+        x_new = self.x.update(e_l, e_θ, e_v, self.dt)  # x[k+1]
 
-        feedback_term = (K @ x_new)[0, 0]  # K is 4 x 1 since u is 1 x 1, look out the signal of K!
+        steering_fb = (K @ x_new)[0, 0]  # K is 2 x 5, x is 5 x 1
         # feedforward_term = math.atan2(self.wheelbase * γ, 1)  # = math.atan2(L / r, 1) = math.atan2(L, r)
-        feedforward_term = self.wheelbase * γ
+        steering_ff = self.wheelbase * γ
 
-        steering = - feedback_term + feedforward_term
+        speed_fb = (K @ x_new)[1, 0]
 
-        return steering
+        steering = - steering_fb + steering_ff
+        speed = self.car.v - speed_fb  # current car speed is the base, v_base + Δv is the speed we want
 
-    def pid_speed_control(self):
-        """
-        TODO: full PID controller
-        """
-        front_pos = self.get_front_pos()
-        _, _, _, i = calc_nearest_point(front_pos, np.array([self.waypoints.x, self.waypoints.y]).T)
-
-        Kp = 1
-        # speed = Kp * (self.waypoints.v[i] - self.car.v)  # desired speed - curr_spd
-        speed = self.waypoints.v[i]
-
-        return speed
+        return steering, speed
 
     def get_front_pos(self):
         front_x = self.car.x + self.wheelbase * math.cos(self.car.θ)
@@ -188,9 +180,10 @@ class LQRSteeringController:
 
         e_θ = pi_2_pi(self.waypoints.θ[i] - self.car.θ)  # heading error
         γ = self.waypoints.γ[i]  # curvature of the nearst waypoint
-        v = self.waypoints.v[i]  # velocity of the nearst waypoint
 
-        return e_l, e_θ, γ, v
+        e_v = self.waypoints.v[i] - self.car.v  # velocity of the nearst waypoint
+
+        return e_l, e_θ, γ, e_v
 
 
 class Renderer:
