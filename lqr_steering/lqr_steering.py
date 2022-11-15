@@ -13,12 +13,19 @@ from pyglet.gl import GL_POINTS  # game interface
 
 class Waypoint:
 
-    def __init__(self, csv_data=None):
-        self.x = csv_data[:, 0]
-        self.y = csv_data[:, 1]
-        self.v = csv_data[:, 2]
-        self.θ = csv_data[:, 3]
-        self.γ = csv_data[:, 4]
+    def __init__(self, map_name, csv_data=None):
+        if map_name == 'spielberg':
+            self.x = csv_data[:, 0]
+            self.y = csv_data[:, 1]
+            self.v = csv_data[:, 2]
+            self.θ = csv_data[:, 3]
+            self.γ = csv_data[:, 4]
+        elif map_name == 'example' or map_name == 'icra':
+            self.x = csv_data[:, 1]
+            self.y = csv_data[:, 2]
+            self.v = csv_data[:, 5]
+            self.θ = csv_data[:, 3] + math.pi / 2  # coordinate matters!
+            self.γ = csv_data[:, 4]
 
 
 class CarState:

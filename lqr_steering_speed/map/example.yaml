@@ -4,19 +4,17 @@ run_name: 'map_wide'
 perf_num: 6
 
 # map paths
-map_path: './icra'
+map_path: './example_map'
 map_ext: '.png'
 
 # starting pose for map
-#sx: 0.7
-#sy: 0.0
-#stheta: 1.37079632679
-sx: 0.0
-sy: 5.0
-stheta: 0.0
+sx: 0.7
+sy: 0.0
+stheta: 1.37079632679
+init_pos: [0.7, 0.0, 1.37079632679]
 
 # raceline path and indices
-wpt_path: './icra_raceline.csv'
+wpt_path: './example_waypoints.csv'
 wpt_delim: ';'
 wpt_rowskip: 3
 wpt_xind: 1
@@ -45,3 +43,10 @@ optim_method: 'CMA'
 
 # seed
 seed: 12345
+
+image: example_map.png
+resolution: 0.062500
+origin: [-78.21853769831466,-44.37590462453829, 0.000000]
+negate: 0
+occupied_thresh: 0.45
+free_thresh: 0.196
