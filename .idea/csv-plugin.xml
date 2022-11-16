@@ -24,27 +24,6 @@
             </Attribute>
           </value>
         </entry>
-        <entry key="\map\Oschersleben\Oschersleben_raceline.csv">
-          <value>
-            <Attribute>
-              <option name="separator" value=";" />
-            </Attribute>
-          </value>
-        </entry>
-        <entry key="\map\Sochi\Sochi_centerline.csv">
-          <value>
-            <Attribute>
-              <option name="separator" value="," />
-            </Attribute>
-          </value>
-        </entry>
-        <entry key="\map\Sochi\Sochi_raceline.csv">
-          <value>
-            <Attribute>
-              <option name="separator" value=";" />
-            </Attribute>
-          </value>
-        </entry>
         <entry key="\map\Spielberg\Spielberg_raceline.csv">
           <value>
             <Attribute>
