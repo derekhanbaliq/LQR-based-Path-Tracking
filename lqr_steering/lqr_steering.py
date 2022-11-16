@@ -63,6 +63,36 @@ class LKVMState:
         return x
 
 
+class PID:
+
+    def __init__(self, Kp = 1.0, Ki = 0.0, Kd = 0.0, i_limit = 100.0):
+        self.Kp = Kp
+        self.Ki = Ki
+        self.Kd = Kd
+        self.error = 0.0
+        self.integral = 0.0
+        self.derivative = 0.0
+        self.i_limit = i_limit
+        self.pre_error = 0.0
+
+
+
+    def output(self, error):
+
+        self.error = error
+        self.integral += self.Ki * self.error
+        if self.integral > self.i_limit:
+            self.integral = self.i_limit
+        elif self.integral < -self.i_limit:
+            self.integral = -self.i_limit
+        self.derivative = self.error - self.pre_error
+        output = self.Kp * self.error + self.integral + self.Kd * self.derivative
+        self.pre_error = self.error
+
+        return output
+
+
+
 class LQR:
 
     def __init__(self, dt, wheelbase, v=0.0):
@@ -122,6 +152,7 @@ class LQRSteeringController:
         self.waypoints = waypoints
         self.car = CarState()
         self.x = LKVMState()  # whenever create the controller, x exists - relatively static
+        self.pid = PID(10.0)
 
     def control(self, curr_obs):
         """
@@ -163,14 +194,14 @@ class LQRSteeringController:
 
     def pid_speed_control(self):
         """
-        TODO: full PID controller
+        use PID controller to control the speed
         """
         front_pos = self.get_front_pos()
         _, _, _, i = calc_nearest_point(front_pos, np.array([self.waypoints.x, self.waypoints.y]).T)
 
-        Kp = 1
-        # speed = Kp * (self.waypoints.v[i] - self.car.v)  # desired speed - curr_spd
-        speed = self.waypoints.v[i]
+        error = self.waypoints.v[i] - self.car.v
+        speed = self.pid.output(error)
+        # speed = self.waypoints.v[i]
 
         return speed
 
