@@ -65,7 +65,7 @@ class LKVMState:
 
 class PID:
 
-    def __init__(self, Kp = 1.0, Ki = 0.0, Kd = 0.0, i_limit = 100.0):
+    def __init__(self, Kp, Ki, Kd, i_limit=100.0):
         self.Kp = Kp
         self.Ki = Ki
         self.Kd = Kd
@@ -75,31 +75,31 @@ class PID:
         self.i_limit = i_limit
         self.pre_error = 0.0
 
-
-
     def output(self, error):
-
         self.error = error
+
         self.integral += self.Ki * self.error
         if self.integral > self.i_limit:
             self.integral = self.i_limit
         elif self.integral < -self.i_limit:
             self.integral = -self.i_limit
+
         self.derivative = self.error - self.pre_error
+
         output = self.Kp * self.error + self.integral + self.Kd * self.derivative
+
         self.pre_error = self.error
 
         return output
 
 
-
 class LQR:
 
     def __init__(self, dt, wheelbase, v=0.0):
-        self.A = np.array([[1.0,     dt,        0,          0],
-                           [0,       0,         v,          0],
-                           [0,       0,         1,          dt],
-                           [0,       0,         0,          0]])
+        self.A = np.array([[1.0, dt, 0, 0],
+                           [0, 0, v, 0],
+                           [0, 0, 1, dt],
+                           [0, 0, 0, 0]])
         self.B = np.array([[0],
                            [0],
                            [0],
@@ -152,7 +152,7 @@ class LQRSteeringController:
         self.waypoints = waypoints
         self.car = CarState()
         self.x = LKVMState()  # whenever create the controller, x exists - relatively static
-        self.pid = PID(10.0)
+        self.pid = PID(0.1, 0.01, 0.0)
 
     def control(self, curr_obs):
         """

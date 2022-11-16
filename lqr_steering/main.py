@@ -18,7 +18,7 @@ from lqr_steering import Waypoint, LQRSteeringController, Renderer
 
 def main():
     # Spielberg, example, MoscowRaceway, Catalunya
-    map_name = 'Spielberg'
+    map_name = 'Catalunya'
     map_path = os.path.abspath(os.path.join('..', 'map', map_name))
     yaml_config = yaml.load(open(map_path + '/' + map_name + '_map.yaml'), Loader=yaml.FullLoader)
 
