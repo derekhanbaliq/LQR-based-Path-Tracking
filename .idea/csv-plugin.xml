@@ -10,35 +10,42 @@
             </Attribute>
           </value>
         </entry>
-        <entry key="\lqr_steering\Spielberg_raceline.csv">
+        <entry key="\map\Catalunya\Catalunya_raceline.csv">
           <value>
             <Attribute>
               <option name="separator" value=";" />
             </Attribute>
           </value>
         </entry>
-        <entry key="\lqr_steering\map\spielberg.csv">
+        <entry key="\map\MoscowRaceway\MoscowRaceway_raceline.csv">
           <value>
             <Attribute>
               <option name="separator" value=";" />
             </Attribute>
           </value>
         </entry>
-        <entry key="\lqr_steering_example_map\example_waypoints.csv">
+        <entry key="\map\Oschersleben\Oschersleben_raceline.csv">
           <value>
             <Attribute>
               <option name="separator" value=";" />
             </Attribute>
           </value>
         </entry>
-        <entry key="\lqr_steering_icra_map\traj_race_cl.csv">
+        <entry key="\map\Sochi\Sochi_centerline.csv">
+          <value>
+            <Attribute>
+              <option name="separator" value="," />
+            </Attribute>
+          </value>
+        </entry>
+        <entry key="\map\Sochi\Sochi_raceline.csv">
           <value>
             <Attribute>
               <option name="separator" value=";" />
             </Attribute>
           </value>
         </entry>
-        <entry key="\lqr_steering_speed\Spielberg_raceline.csv">
+        <entry key="\map\Spielberg\Spielberg_raceline.csv">
           <value>
             <Attribute>
               <option name="separator" value=";" />

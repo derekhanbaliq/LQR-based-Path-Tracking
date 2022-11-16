@@ -9,32 +9,35 @@
 
 import gym
 import numpy as np
-from lqr_steering import Waypoint, LQRSteeringController, Renderer
-from log import xlsx_log_action, xlsx_log_observation
 import yaml
+import os
+
+from log import xlsx_log_action, xlsx_log_observation
+from lqr_steering import Waypoint, LQRSteeringController, Renderer
 
 
 def main():
-    # spielberg, example, or icra
-    map_name = 'spielberg'
-    data = yaml.load(open('map/' + map_name + '.yaml'), Loader=yaml.FullLoader)
+    # Spielberg, example, MoscowRaceway, Catalunya
+    map_name = 'Spielberg'
+    map_path = os.path.abspath(os.path.join('..', 'map', map_name))
+    yaml_config = yaml.load(open(map_path + '/' + map_name + '_map.yaml'), Loader=yaml.FullLoader)
 
     # load waypoints into controller
-    csv_data = np.loadtxt('./map/' + map_name + '.csv', delimiter=';', skiprows=0)
+    csv_data = np.loadtxt(map_path + '/' + map_name + '_raceline.csv', delimiter=';', skiprows=0)
     waypoints = Waypoint(map_name, csv_data)
 
     controller = LQRSteeringController(waypoints)
     renderer = Renderer(waypoints)
 
     # create env & init
-    env = gym.make('f110_gym:f110-v0', map='./map/' + map_name, map_ext='.png', num_agents=1)
+    env = gym.make('f110_gym:f110-v0', map=map_path + '/' + map_name + '_map', map_ext='.png', num_agents=1)
 
     def render_callback(env_renderer):
         renderer.render_waypoints(env_renderer)  # render waypoints in env
 
     env.add_render_callback(render_callback)
 
-    init_pos = np.array([data['init_pos']])
+    init_pos = np.array([yaml_config['init_pos']])
     obs, _, done, _ = env.reset(init_pos)
 
     # placeholder for logging, plotting, and debugging
@@ -43,8 +46,8 @@ def main():
 
     lap_time = 0.0
 
-    while lap_time < 3:  # testing log
-    # while not done:
+    # while lap_time < 3:  # testing log
+    while not done:
         steering, speed = controller.control(obs)  # each agent’s current observation
         print("steering = {}, speed = {}".format(round(steering, 5), speed))
         log_action.append([lap_time, steering, speed])

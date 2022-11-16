@@ -14,11 +14,11 @@ from pyglet.gl import GL_POINTS  # game interface
 class Waypoint:
 
     def __init__(self, map_name, csv_data=None):
-        if map_name == 'spielberg':
-            self.x = csv_data[:, 0]
-            self.y = csv_data[:, 1]
-            self.v = csv_data[:, 2]
-            self.θ = csv_data[:, 3]
+        if map_name == 'Spielberg' or map_name == 'MoscowRaceway' or map_name == 'Catalunya':
+            self.x = csv_data[:, 1]
+            self.y = csv_data[:, 2]
+            self.v = csv_data[:, 5]
+            self.θ = csv_data[:, 3]  # coordinate matters!
             self.γ = csv_data[:, 4]
         elif map_name == 'example' or map_name == 'icra':
             self.x = csv_data[:, 1]
@@ -104,7 +104,7 @@ class LQR:
         ε = 0.001  # tolerance epsilon
         diff = math.inf  # always use value iteration with max iteration!
 
-        print('S0 = Q = {}'.format(self.Q))
+        # print('S0 = Q = {}'.format(self.Q))
 
         i = 0
         while i < max_iter and diff > ε:
@@ -112,7 +112,7 @@ class LQR:
             Sn = Q + A.T @ S @ A - (A.T @ S @ B) @ np.linalg.pinv(R + B.T @ S @ B) @ (B.T @ S @ A)
             S = Sn
 
-        print('Sn = {}'.format(Sn))
+        # print('Sn = {}'.format(Sn))
 
         return Sn
 
