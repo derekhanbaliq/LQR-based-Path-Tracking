@@ -1,5 +1,5 @@
 """
-    MEAM 517 Final Project - LQR Steering Control - main application
+    MEAM 517 Final Project - LQR Steering Speed Control - main application
     Author: Derek Zhou & Tancy Zhao
     References: https://f1tenth-gym.readthedocs.io/en/latest/index.html
                 https://github.com/f1tenth/f1tenth_gym/tree/main/examples
@@ -12,13 +12,14 @@ import numpy as np
 import yaml
 import os
 
-from lqr_steering_speed import Waypoint, LQRSteeringSpeedController, Renderer
+from lqr_steering_speed import Waypoint, LQRSteeringSpeedController
 from log import xlsx_log_action, xlsx_log_observation
+from render import Renderer
 
 
 def main():
     # load map & yaml
-    map_name = 'Spielberg'  # Spielberg, example, MoscowRaceway, Catalunya
+    map_name = 'MoscowRaceway'  # Spielberg, example, MoscowRaceway, Catalunya
     map_path = os.path.abspath(os.path.join('..', 'map', map_name))
     yaml_config = yaml.load(open(map_path + '/' + map_name + '_map.yaml'), Loader=yaml.FullLoader)
 

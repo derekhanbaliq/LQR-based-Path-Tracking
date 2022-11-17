@@ -13,7 +13,8 @@ import yaml
 import os
 
 from log import xlsx_log_action, xlsx_log_observation
-from lqr_steering import Waypoint, LQRSteeringController, Renderer
+from lqr_steering import Waypoint, LQRSteeringController
+from render import Renderer
 
 
 def main():

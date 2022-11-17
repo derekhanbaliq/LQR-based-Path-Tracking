@@ -1,5 +1,5 @@
 """
-    MEAM 517 Final Project - LQR Steering Control - LQR class
+    MEAM 517 Final Project - LQR Steering Speed Control - LQR class
     Author: Derek Zhou & Tancy Zhao
     References: https://github.com/AtsushiSakai/PythonRobotics/tree/master/PathTracking/lqr_steer_control
                 https://github.com/f1tenth/f1tenth_planning/tree/main/f1tenth_planning/control/lqr
@@ -191,29 +191,3 @@ class LQRSteeringSpeedController:
         e_v = self.waypoints.v[i] - self.car.v  # velocity of the nearst waypoint
 
         return e_l, e_θ, γ, e_v
-
-
-class Renderer:
-
-    def __init__(self, waypoints):
-        self.waypoints = waypoints
-        self.drawn_waypoints = []
-
-    def render_waypoints(self, e):
-        """
-        update waypoints being drawn by EnvRenderer
-        """
-
-        # points = self.waypoints
-
-        points = np.vstack((self.waypoints.x, self.waypoints.y)).T  # N x 2
-
-        scaled_points = 50. * points
-
-        for i in range(points.shape[0]):
-            if len(self.drawn_waypoints) < points.shape[0]:
-                b = e.batch.add(1, GL_POINTS, None, ('v3f/stream', [scaled_points[i, 0], scaled_points[i, 1], 0.]),
-                                ('c3B/stream', [183, 193, 222]))
-                self.drawn_waypoints.append(b)
-            else:
-                self.drawn_waypoints[i].vertices = [scaled_points[i, 0], scaled_points[i, 1], 0.]
