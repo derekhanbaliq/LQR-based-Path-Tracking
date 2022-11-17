@@ -52,6 +52,11 @@ def main():
         obs, time_step, done, _ = env.step(np.array([[steering, speed]]))
         log_obs.append([lap_time, obs['poses_x'][0], obs['poses_y'][0], obs['poses_theta'][0], obs['linear_vels_x'][0]])
 
+        # if (lap_time * 100.0) % 5 <= 1:
+        #     # print((lap_time * 100.0) % 10)
+        #     renderer.load_obs(obs)
+        #     env.add_render_callback(renderer.render_path)
+
         lap_time += time_step
         env.render(mode='human')
 
