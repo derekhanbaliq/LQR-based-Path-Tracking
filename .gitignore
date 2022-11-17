@@ -12,4 +12,4 @@ flycheck_*
 test_Atsushi_Sakai/*
 test_Billy_kinematic_mpc/*
 test_Billy_lqr/*
-lqr_steering_render/*
+test_render/*

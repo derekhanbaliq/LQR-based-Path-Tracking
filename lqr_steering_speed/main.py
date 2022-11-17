@@ -17,34 +17,31 @@ from log import xlsx_log_action, xlsx_log_observation
 
 
 def main():
-    # Spielberg, example, MoscowRaceway, Catalunya
-    map_name = 'Spielberg'
+    # load map & yaml
+    map_name = 'Spielberg'  # Spielberg, example, MoscowRaceway, Catalunya
     map_path = os.path.abspath(os.path.join('..', 'map', map_name))
     yaml_config = yaml.load(open(map_path + '/' + map_name + '_map.yaml'), Loader=yaml.FullLoader)
 
-    # load waypoints into controller
+    # load waypoints
     csv_data = np.loadtxt(map_path + '/' + map_name + '_raceline.csv', delimiter=';', skiprows=0)
     waypoints = Waypoint(map_name, csv_data)
 
+    # load controller
     controller = LQRSteeringSpeedController(waypoints)
-    renderer = Renderer(waypoints)
 
     # create env & init
     env = gym.make('f110_gym:f110-v0', map=map_path + '/' + map_name + '_map', map_ext='.png', num_agents=1)
+    renderer = Renderer(waypoints)
+    env.add_render_callback(renderer.render_waypoints)
 
-    def render_callback(env_renderer):
-        renderer.render_waypoints(env_renderer)  # render waypoints in env
-
-    env.add_render_callback(render_callback)
-
+    # init
     init_pos = np.array([yaml_config['init_pos']])
     obs, _, done, _ = env.reset(init_pos)
+    lap_time = 0.0
 
     # placeholder for logging, plotting, and debugging
     log_action = []
     log_obs = []
-
-    lap_time = 0.0
 
     # while lap_time < 3:  # testing log
     while not done:
