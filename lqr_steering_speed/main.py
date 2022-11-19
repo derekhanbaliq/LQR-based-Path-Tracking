@@ -11,9 +11,9 @@ import gym
 import numpy as np
 import yaml
 import os
+import log
 
 from lqr_steering_speed import Waypoint, LQRSteeringSpeedController
-from log import xlsx_log_action, xlsx_log_observation
 from render import Renderer
 
 
@@ -43,9 +43,13 @@ def main():
     # placeholder for logging, plotting, and debugging
     log_action = []
     log_obs = []
+    log_error = []
 
     # while lap_time < 3:  # testing log
     while not done:
+        errors = controller.get_error()
+        log_error.append(errors)
+
         steering, speed = controller.control(obs)  # each agent’s current observation
         print("steering = {}, speed = {}".format(round(steering, 5), speed))
         log_action.append([lap_time, steering, speed])
@@ -57,8 +61,9 @@ def main():
         env.render(mode='human')
 
     print('Sim elapsed time:', lap_time)
-    xlsx_log_action(map_name, log_action)
-    xlsx_log_observation(map_name, log_obs)
+    log.xlsx_log_action(map_name, log_action)
+    log.xlsx_log_observation(map_name, log_obs)
+    log.xlsx_log_error(map_name, log_error)
 
 
 if __name__ == '__main__':

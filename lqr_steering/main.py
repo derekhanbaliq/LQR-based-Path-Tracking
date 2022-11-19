@@ -11,15 +11,15 @@ import gym
 import numpy as np
 import yaml
 import os
+import log
 
-from log import xlsx_log_action, xlsx_log_observation
 from lqr_steering import Waypoint, LQRSteeringController
 from render import Renderer
 
 
 def main():
     # load map & yaml
-    map_name = 'Spielberg'  # Spielberg, example, MoscowRaceway, Catalunya
+    map_name = 'Catalunya'  # Spielberg, example, MoscowRaceway, Catalunya
     map_path = os.path.abspath(os.path.join('..', 'map', map_name))
     yaml_config = yaml.load(open(map_path + '/' + map_name + '_map.yaml'), Loader=yaml.FullLoader)
 
@@ -43,9 +43,13 @@ def main():
     # placeholder for logging, plotting, and debugging
     log_action = []
     log_obs = []
+    log_error = []
 
     # while lap_time < 3:  # testing log
     while not done:
+        errors = controller.get_error()
+        log_error.append(errors)
+
         steering, speed = controller.control(obs)  # each agent’s current observation
         print("steering = {}, speed = {}".format(round(steering, 5), speed))
         log_action.append([lap_time, steering, speed])
@@ -62,8 +66,9 @@ def main():
         env.render(mode='human')
 
     print('Sim elapsed time:', lap_time)
-    xlsx_log_action(map_name, log_action)
-    xlsx_log_observation(map_name, log_obs)
+    log.xlsx_log_action(map_name, log_action)
+    log.xlsx_log_observation(map_name, log_obs)
+    log.xlsx_log_error(map_name, log_error)
 
 
 if __name__ == '__main__':

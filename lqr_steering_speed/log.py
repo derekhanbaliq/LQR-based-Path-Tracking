@@ -32,3 +32,16 @@ def xlsx_log_observation(map_name, observations):
         worksheet.write_row(row + 1, col, obs)
 
     workbook.close()
+
+
+def xlsx_log_error(map_name, errors):
+    workbook = xlsxwriter.Workbook('log/' + map_name + '_errors.xlsx')
+    worksheet = workbook.add_worksheet()
+
+    worksheet.write_row('A1:A2', ['e_l', 'e_theta'])
+
+    col = 0
+    for row, err in enumerate(errors):  # iterating through content list
+        worksheet.write_row(row + 1, col, err)
+
+    workbook.close()

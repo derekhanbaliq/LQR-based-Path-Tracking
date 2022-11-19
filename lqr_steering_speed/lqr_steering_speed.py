@@ -190,3 +190,9 @@ class LQRSteeringSpeedController:
         e_v = self.waypoints.v[i] - self.car.v  # velocity of the nearst waypoint
 
         return e_l, e_θ, γ, e_v
+
+    def get_error(self):
+        e_l = self.x.e_l
+        e_θ = self.x.e_θ
+
+        return np.array([e_l, e_θ])

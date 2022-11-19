@@ -228,3 +228,9 @@ class LQRSteeringController:
         v = self.waypoints.v[i]  # velocity of the nearst waypoint
 
         return e_l, e_θ, γ, v
+
+    def get_error(self):
+        e_l = self.x.e_l
+        e_θ = self.x.e_θ
+
+        return np.array([e_l, e_θ])
