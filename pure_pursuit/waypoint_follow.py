@@ -6,8 +6,9 @@ import numpy as np
 from argparse import Namespace
 
 from numba import njit  # JIT compiler -- Just-in-time
-
 from pyglet.gl import GL_POINTS  # game interface
+from log import xlsx_log_action, xlsx_log_observation
+import math
 
 """
 Planner Helpers
@@ -254,9 +255,9 @@ def main():
     """
 
     work = {'mass': 3.463388126201571, 'lf': 0.15597534362552312, 'tlad': 0.82461887897713965,
-            'vgain': 1.375}  # 0.90338203837889}, which is 8m/s for real F1TENTH car
+            'vgain': 1.0}  # 1.375 / 0.90338203837889}, which is 8m/s for real F1TENTH car
 
-    with open('config_example_map.yaml') as file:  # in current path
+    with open('config_map.yaml') as file:  # in current path
         conf_dict = yaml.load(file, Loader=yaml.FullLoader)
     conf = Namespace(**conf_dict)  # all parameters in yaml file
 
@@ -292,18 +293,28 @@ def main():
     lap_time = 0.0
     start = time.time()
 
+    # placeholder for logging, plotting, and debugging
+    log_action = []
+    log_obs = []
+
     while not done:
         speed, steer = planner.plan(obs['poses_x'][0], obs['poses_y'][0], obs['poses_theta'][0], work['tlad'],
                                     work['vgain'])  # planner calculate the speed & steering angle
+        log_action.append([lap_time, steer, speed])
         # observ:       observation dictionary
         # step reward:  the physics timestep -- used 0.01s?
         # done boolean indicator: flips to true when either a collision happens or the ego agent finishes 2 laps
         # info:         info dictionary, empty in the current release
+
         obs, step_reward, done, info = env.step(np.array([[steer, speed]]))  # step one forward
+        log_obs.append([lap_time, obs['poses_x'][0], obs['poses_y'][0], obs['poses_theta'][0], obs['linear_vels_x'][0]])
+
         lap_time += step_reward  # accumulating timestamp
         env.render(mode='human')  # update GUI
 
     print('Sim elapsed time:', lap_time, 'Real elapsed time:', time.time() - start)
+    xlsx_log_action(conf.map_name, log_action)
+    xlsx_log_observation(conf.map_name, log_obs)
 
 
 if __name__ == '__main__':

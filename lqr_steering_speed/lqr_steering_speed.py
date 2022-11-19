@@ -8,7 +8,6 @@
 import numpy as np
 import math
 from utils import calc_nearest_point, pi_2_pi
-from pyglet.gl import GL_POINTS  # game interface
 
 
 class Waypoint:

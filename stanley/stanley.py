@@ -27,14 +27,32 @@ Author: Hongrui Zheng, Johannes Betz
 Last Modified: 5/1/22
 """
 
-from f1tenth_planning.utils.utils import nearest_point
-from f1tenth_planning.utils.utils import intersect_point
-from f1tenth_planning.utils.utils import pi_2_pi
+from utils import nearest_point
+from utils import intersect_point
+from utils import pi_2_pi
 
 import numpy as np
 import math
 
-class StanleyPlanner():
+
+class Waypoint:
+
+    def __init__(self, map_name, csv_data=None):
+        if map_name == 'Spielberg' or map_name == 'MoscowRaceway' or map_name == 'Catalunya':
+            self.x = csv_data[:, 1]
+            self.y = csv_data[:, 2]
+            self.v = csv_data[:, 5]
+            self.θ = csv_data[:, 3]  # coordinate matters!
+            self.γ = csv_data[:, 4]
+        elif map_name == 'example' or map_name == 'icra':
+            self.x = csv_data[:, 1]
+            self.y = csv_data[:, 2]
+            self.v = csv_data[:, 5]
+            self.θ = csv_data[:, 3] + math.pi / 2  # coordinate matters!
+            self.γ = csv_data[:, 4]
+
+
+class StanleyPlanner:
     """
     This is the class for the Front Weeel Feedback Controller (Stanley) for tracking the path of the vehicle
     References:
