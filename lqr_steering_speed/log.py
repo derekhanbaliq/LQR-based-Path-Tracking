@@ -1,5 +1,5 @@
 """
-    MEAM 517 Final Project - LQR Steering Control - main application
+    MEAM 517 Final Project - LQR Steering Speed Control - log
     Author: Derek Zhou & Tancy Zhao
     References: https://xlsxwriter.readthedocs.io/
                 https://f1tenth-gym.readthedocs.io/en/latest/index.html
@@ -8,8 +8,8 @@
 import xlsxwriter
 
 
-def xlsx_log_action(map_name, actions):
-    workbook = xlsxwriter.Workbook('log/' + map_name + '_action.xlsx')
+def xlsx_log_action(method_name, map_name, actions):
+    workbook = xlsxwriter.Workbook('../log/' + method_name + '/' + map_name + '_action.xlsx')
     worksheet = workbook.add_worksheet()
 
     worksheet.write_row('A1:A3', ['time', 'speed', 'steer'])
@@ -21,8 +21,8 @@ def xlsx_log_action(map_name, actions):
     workbook.close()
 
 
-def xlsx_log_observation(map_name, observations):
-    workbook = xlsxwriter.Workbook('log/' + map_name + '_observation.xlsx')
+def xlsx_log_observation(method_name, map_name, observations):
+    workbook = xlsxwriter.Workbook('../log/' + method_name + '/' + map_name + '_observation.xlsx')
     worksheet = workbook.add_worksheet()
 
     worksheet.write_row('A1:A5', ['time', 'x', 'y', 'theta', 'v_x'])
@@ -34,8 +34,8 @@ def xlsx_log_observation(map_name, observations):
     workbook.close()
 
 
-def xlsx_log_error(map_name, errors):
-    workbook = xlsxwriter.Workbook('log/' + map_name + '_errors.xlsx')
+def xlsx_log_error(method_name, map_name, errors):
+    workbook = xlsxwriter.Workbook('../log/' + method_name + '/' + map_name + '_errors.xlsx')
     worksheet = workbook.add_worksheet()
 
     worksheet.write_row('A1:A2', ['e_l', 'e_theta'])

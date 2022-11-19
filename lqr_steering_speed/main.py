@@ -18,8 +18,10 @@ from render import Renderer
 
 
 def main():
+    method_name = 'lqr_steering_speed'
+
     # load map & yaml
-    map_name = 'MoscowRaceway'  # Spielberg, example, MoscowRaceway, Catalunya
+    map_name = 'Catalunya'  # Spielberg, example, MoscowRaceway, Catalunya
     map_path = os.path.abspath(os.path.join('..', 'map', map_name))
     yaml_config = yaml.load(open(map_path + '/' + map_name + '_map.yaml'), Loader=yaml.FullLoader)
 
@@ -61,9 +63,9 @@ def main():
         env.render(mode='human')
 
     print('Sim elapsed time:', lap_time)
-    log.xlsx_log_action(map_name, log_action)
-    log.xlsx_log_observation(map_name, log_obs)
-    log.xlsx_log_error(map_name, log_error)
+    log.xlsx_log_action(method_name, map_name, log_action)
+    log.xlsx_log_observation(method_name, map_name, log_obs)
+    log.xlsx_log_error(method_name, map_name, log_error)
 
 
 if __name__ == '__main__':

@@ -151,7 +151,7 @@ class LQRSteeringController:
         self.waypoints = waypoints
         self.car = CarState()
         self.x = LKVMState()  # whenever create the controller, x exists - relatively static
-        self.pid = PID(0.1, 0.01, 0.0)
+        self.pid = PID(0.1, 0.018, 0.01)
 
     def control(self, curr_obs):
         """
