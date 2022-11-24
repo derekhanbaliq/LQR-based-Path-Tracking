@@ -45,6 +45,27 @@
             </Attribute>
           </value>
         </entry>
+        <entry key="\test_Billy_kinematic_mpc\Spielberg_raceline.csv">
+          <value>
+            <Attribute>
+              <option name="separator" value=";" />
+            </Attribute>
+          </value>
+        </entry>
+        <entry key="\test_Billy_kinematic_mpc\levine_centerline.csv">
+          <value>
+            <Attribute>
+              <option name="separator" value=";" />
+            </Attribute>
+          </value>
+        </entry>
+        <entry key="\test_Billy_kinematic_mpc\levine_raceline.csv">
+          <value>
+            <Attribute>
+              <option name="separator" value=";" />
+            </Attribute>
+          </value>
+        </entry>
       </map>
     </option>
   </component>

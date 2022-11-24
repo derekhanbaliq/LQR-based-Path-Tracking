@@ -19,7 +19,7 @@ class Waypoint:
             self.v = csv_data[:, 5]
             self.θ = csv_data[:, 3]  # coordinate matters!
             self.γ = csv_data[:, 4]
-        elif map_name == 'example' or map_name == 'icra':
+        elif map_name == 'example' or map_name == 'icra' or map_name == 'levine':
             self.x = csv_data[:, 1]
             self.y = csv_data[:, 2]
             self.v = csv_data[:, 5]

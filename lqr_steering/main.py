@@ -21,7 +21,7 @@ def main():
     method_name = 'lqr_steering'
 
     # load map & yaml
-    map_name = 'Catalunya'  # Spielberg, example, MoscowRaceway, Catalunya
+    map_name = 'Spielberg'  # Spielberg, example, MoscowRaceway, Catalunya, levine
     map_path = os.path.abspath(os.path.join('..', 'map', map_name))
     yaml_config = yaml.load(open(map_path + '/' + map_name + '_map.yaml'), Loader=yaml.FullLoader)
 
@@ -34,6 +34,7 @@ def main():
 
     # create env & init
     env = gym.make('f110_gym:f110-v0', map=map_path + '/' + map_name + '_map', map_ext='.png', num_agents=1)
+    # env = gym.make('f110_gym:f110-v0', map=map_path + '/' + map_name + '_map', map_ext='.pgm', num_agents=1)  # levine
     renderer = Renderer(waypoints)
     env.add_render_callback(renderer.render_waypoints)
 
