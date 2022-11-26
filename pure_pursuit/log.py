@@ -1,5 +1,5 @@
 """
-    MEAM 517 Final Project - LQR Steering Control - main application
+    MEAM 517 Final Project - Pure Pursuit - main application
     Author: Derek Zhou & Tancy Zhao
     References: https://xlsxwriter.readthedocs.io/
                 https://f1tenth-gym.readthedocs.io/en/latest/index.html

@@ -1,10 +1,9 @@
 """
-    MEAM 517 Final Project - LQR Steering Control - main application
+    MEAM 517 Final Project - Stanley - main application
     Author: Derek Zhou & Tancy Zhao
     References: https://f1tenth-gym.readthedocs.io/en/latest/index.html
                 https://github.com/f1tenth/f1tenth_gym/tree/main/examples
-                https://github.com/f1tenth/f1tenth_planning/tree/main/f1tenth_planning/control/lqr
-                https://github.com/AtsushiSakai/PythonRobotics/tree/master/PathTracking/lqr_steer_control
+                https://github.com/f1tenth/f1tenth_planning/tree/main/f1tenth_planning/control/stanley
 """
 
 import gym
@@ -62,8 +61,8 @@ def main():
                                           obs['poses_theta'][0],
                                           obs['linear_vels_x'][0],
                                           k_path=7.0)
-        if speed >= 8:
-            speed = 8  # speed limit < 8 m/s
+        if speed >= 8.0:
+            speed = 8.0  # speed limit < 8 m/s
         print("steering = {}, speed = {}".format(round(steering, 5), speed))
         log_action.append([lap_time, steering, speed])
 

@@ -300,8 +300,8 @@ def main():
     while not done:
         speed, steer = planner.plan(obs['poses_x'][0], obs['poses_y'][0], obs['poses_theta'][0], work['tlad'],
                                     work['vgain'])  # planner calculate the speed & steering angle
-        if speed >= 8:
-            speed = 8  # speed limit < 8 m/s
+        if speed >= 8.0:
+            speed = 8.0  # speed limit < 8 m/s
         log_action.append([lap_time, steer, speed])
         # observ:       observation dictionary
         # step reward:  the physics timestep -- used 0.01s?

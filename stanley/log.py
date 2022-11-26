@@ -1,5 +1,5 @@
 """
-    MEAM 517 Final Project - LQR Steering Control - main application
+    MEAM 517 Final Project - Stanley - log
     Author: Derek Zhou & Tancy Zhao
     References: https://xlsxwriter.readthedocs.io/
                 https://f1tenth-gym.readthedocs.io/en/latest/index.html
@@ -9,7 +9,7 @@ import xlsxwriter
 
 
 def xlsx_log_action(map_name, actions):
-    workbook = xlsxwriter.Workbook('log/' + map_name + '_action.xlsx')
+    workbook = xlsxwriter.Workbook('../log/stanley' + map_name + '_action.xlsx')
     worksheet = workbook.add_worksheet()
 
     worksheet.write_row('A1:A3', ['time', 'speed', 'steer'])
@@ -22,7 +22,7 @@ def xlsx_log_action(map_name, actions):
 
 
 def xlsx_log_observation(map_name, observations):
-    workbook = xlsxwriter.Workbook('log/' + map_name + '_observation.xlsx')
+    workbook = xlsxwriter.Workbook('../log/stanley' + map_name + '_observation.xlsx')
     worksheet = workbook.add_worksheet()
 
     worksheet.write_row('A1:A5', ['time', 'x', 'y', 'theta', 'v_x'])

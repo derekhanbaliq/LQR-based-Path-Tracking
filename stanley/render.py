@@ -1,5 +1,5 @@
 """
-    MEAM 517 Final Project - LQR Steering Control - Renderer class
+    MEAM 517 Final Project - Stanley - Renderer class
     Author: Derek Zhou & Tancy Zhao
     References: https://github.com/f1tenth/f1tenth_gym/tree/main/examples
 """
