@@ -62,6 +62,8 @@ def main():
                                           obs['poses_theta'][0],
                                           obs['linear_vels_x'][0],
                                           k_path=7.0)
+        if speed >= 8:
+            speed = 8  # speed limit < 8 m/s
         print("steering = {}, speed = {}".format(round(steering, 5), speed))
         log_action.append([lap_time, steering, speed])
 

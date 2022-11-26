@@ -4,15 +4,15 @@ run_name: 'map_wide'
 perf_num: 6
 
 #map_name: 'Spielberg'
-map_name: 'example'
+#map_name: 'example'
 #map_name: 'MoscowRaceway'
-#map_name: 'Catalunya'
+map_name: 'Catalunya'
 
 # map paths
 #map_path: '../map/Spielberg/Spielberg_map'
-map_path: '../map/example/example_map'
+#map_path: '../map/example/example_map'
 #map_path: '../map/MoscowRaceway/MoscowRaceway_map'
-#map_path: '../map/Catalunya/Catalunya_map'
+map_path: '../map/Catalunya/Catalunya_map'
 map_ext: '.png'
 
 # starting pose for map
@@ -23,9 +23,9 @@ map_ext: '.png'
 #stheta: 3.40
 
 # example
-sx: 0.7
-sy: 0.0
-stheta: 1.37079632679
+#sx: 0.7
+#sy: 0.0
+#stheta: 1.37079632679
 
 # MoscowRaceway
 #sx: 0.8232663
@@ -33,15 +33,15 @@ stheta: 1.37079632679
 #stheta: 1.4645504
 
 # Catalunya
-#sx: 0.5549085
-#sy: -0.6243834
-#stheta: 4.1367500
+sx: 0.5549085
+sy: -0.6243834
+stheta: 4.1367500
 
 # raceline path and indices
 #wpt_path: '../map/Spielberg/Spielberg_raceline.csv'
-wpt_path: '../map/example/example_raceline.csv'
+#wpt_path: '../map/example/example_raceline.csv'
 #wpt_path: '../map/MoscowRaceway/MoscowRaceway_raceline.csv'
-#wpt_path: '../map/Catalunya/Catalunya_raceline.csv'
+wpt_path: '../map/Catalunya/Catalunya_raceline.csv'
 
 wpt_delim: ';'
 wpt_rowskip: 3

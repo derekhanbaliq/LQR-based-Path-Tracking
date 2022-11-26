@@ -200,7 +200,9 @@ class LQRSteeringController:
 
         error = self.waypoints.v[i] - self.car.v
         speed = self.pid.output(error)
-        # speed = self.waypoints.v[i]
+
+        if speed >= 8.0:
+            speed = 8.0  # speed limit < 8 m/s
 
         return speed
 

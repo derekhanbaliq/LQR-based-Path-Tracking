@@ -163,6 +163,9 @@ class LQRSteeringSpeedController:
         steering = - steering_fb + steering_ff
         speed = self.car.v - speed_fb  # current car speed is the base, v_base + Δv is the speed we want
 
+        if speed >= 8.0:
+            speed = 8.0  # speed limit < 8 m/s
+
         return steering, speed
 
     def get_front_pos(self):
