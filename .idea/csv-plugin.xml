@@ -45,21 +45,35 @@
             </Attribute>
           </value>
         </entry>
-        <entry key="\test_Billy_kinematic_mpc\Spielberg_raceline.csv">
+        <entry key="\test_kmpc_Ahmed\maps\MoscowRaceway\MoscowRaceway_centerline.csv">
+          <value>
+            <Attribute>
+              <option name="separator" value="," />
+            </Attribute>
+          </value>
+        </entry>
+        <entry key="\test_kmpc_Ahmed\maps\MoscowRaceway\MoscowRaceway_raceline.csv">
           <value>
             <Attribute>
               <option name="separator" value=";" />
             </Attribute>
           </value>
         </entry>
-        <entry key="\test_Billy_kinematic_mpc\levine_centerline.csv">
+        <entry key="\test_kmpc_Ahmed\maps\rounded_rectangle\rounded_rectangle.csv">
+          <value>
+            <Attribute>
+              <option name="separator" value="," />
+            </Attribute>
+          </value>
+        </entry>
+        <entry key="\test_kmpc_Ahmed\maps\rounded_rectangle\rounded_rectangle_waypoints.csv">
           <value>
             <Attribute>
               <option name="separator" value=";" />
             </Attribute>
           </value>
         </entry>
-        <entry key="\test_Billy_kinematic_mpc\levine_raceline.csv">
+        <entry key="\test_kmpc_Ahmed\waypoints\levine_centerline.csv">
           <value>
             <Attribute>
               <option name="separator" value=";" />

@@ -21,7 +21,7 @@ def main():
     method_name = 'lqr_steering'
 
     # load map & yaml
-    map_name = 'Spielberg'  # Spielberg, example, MoscowRaceway, Catalunya, levine
+    map_name = 'MoscowRaceway'  # Spielberg, example, MoscowRaceway, Catalunya, levine
     map_path = os.path.abspath(os.path.join('..', 'map', map_name))
     yaml_config = yaml.load(open(map_path + '/' + map_name + '_map.yaml'), Loader=yaml.FullLoader)
 
