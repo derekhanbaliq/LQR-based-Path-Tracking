@@ -53,7 +53,7 @@ def main():
         log_error.append(errors)
 
         steering, speed = controller.control(obs)  # each agent’s current observation
-        print("steering = {}, speed = {}".format(round(steering, 5), speed))
+        # print("steering = {}, speed = {}".format(round(steering, 5), speed))
         log_action.append([lap_time, steering, speed])
 
         obs, time_step, done, _ = env.step(np.array([[steering, speed]]))

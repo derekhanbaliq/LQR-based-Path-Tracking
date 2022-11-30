@@ -99,7 +99,7 @@ class LQR:
         S = self.Q
         Sn = None
 
-        max_iter = 500
+        max_iter = 100
         ε = 0.001  # tolerance epsilon
         diff = math.inf  # always use value iteration with max iteration!
 
@@ -156,12 +156,13 @@ class LQRSteeringSpeedController:
 
         steering_fb = (K @ x_new)[0, 0]  # K is 2 x 5, x is 5 x 1
         # feedforward_term = math.atan2(self.wheelbase * γ, 1)  # = math.atan2(L / r, 1) = math.atan2(L, r)
-        steering_ff = self.wheelbase * γ
+        steering_ff = self.wheelbase * γ  # can be seen as current steering angle
 
-        speed_fb = (K @ x_new)[1, 0]
+        speed_fb = (K @ x_new)[1, 0]  # the acceleration, should be regarded as Δv
 
         steering = - steering_fb + steering_ff
-        speed = self.car.v - speed_fb  # current car speed is the base, v_base + Δv is the speed we want
+        speed = - speed_fb + self.car.v  # current car speed is the base, v_base + Δv is the speed we want
+        # speed = - accel * self.dt + self.car.v is wrong because we are in the loop, Δt should be "unit 1"
 
         if speed >= 8.0:
             speed = 8.0  # speed limit < 8 m/s
