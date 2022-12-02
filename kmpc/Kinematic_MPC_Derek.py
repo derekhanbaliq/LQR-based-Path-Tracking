@@ -6,8 +6,8 @@ import sys
 import numpy as np
 from argparse import Namespace
 from f110_gym.envs.dynamic_models import vehicle_dynamics_ks, vehicle_dynamics_st
-from regulators.pure_pursuit import *
-from regulators.path_follow_mpc import *
+from methods.pure_pursuit import *
+from methods.path_follow_mpc import *
 from models.kinematic import KinematicModel
 from models.extended_kinematic import ExtendedKinematicModel
 from helpers.closest_point import *
