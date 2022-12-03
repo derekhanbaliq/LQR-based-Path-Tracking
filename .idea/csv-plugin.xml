@@ -45,6 +45,13 @@
             </Attribute>
           </value>
         </entry>
+        <entry key="\map\stadium\stadium_raceline.csv">
+          <value>
+            <Attribute>
+              <option name="separator" value=";" />
+            </Attribute>
+          </value>
+        </entry>
         <entry key="\test_kmpc_Ahmed\maps\MoscowRaceway\MoscowRaceway_centerline.csv">
           <value>
             <Attribute>
@@ -74,6 +81,13 @@
           </value>
         </entry>
         <entry key="\test_kmpc_Ahmed\waypoints\levine_centerline.csv">
+          <value>
+            <Attribute>
+              <option name="separator" value=";" />
+            </Attribute>
+          </value>
+        </entry>
+        <entry key="\test_kmpc_Billy_comment\levine_centerline.csv">
           <value>
             <Attribute>
               <option name="separator" value=";" />
