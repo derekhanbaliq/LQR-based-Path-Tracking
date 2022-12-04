@@ -20,7 +20,7 @@ import math
 def main():
     # load map & yaml
     map_name = 'Catalunya'  # Spielberg, example, MoscowRaceway, Catalunya
-    map_path = os.path.abspath(os.path.join('..', 'map', map_name))
+    map_path = os.path.abspath(os.path.join('..', 'maps', map_name))
     yaml_config = yaml.load(open(map_path + '/' + map_name + '_map.yaml'), Loader=yaml.FullLoader)
 
     # load waypoints

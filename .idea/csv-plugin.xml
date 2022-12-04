@@ -10,48 +10,6 @@
             </Attribute>
           </value>
         </entry>
-        <entry key="\map\Catalunya\Catalunya_raceline.csv">
-          <value>
-            <Attribute>
-              <option name="separator" value=";" />
-            </Attribute>
-          </value>
-        </entry>
-        <entry key="\map\MoscowRaceway\MoscowRaceway_raceline.csv">
-          <value>
-            <Attribute>
-              <option name="separator" value=";" />
-            </Attribute>
-          </value>
-        </entry>
-        <entry key="\map\Spielberg\Spielberg_centerline.csv">
-          <value>
-            <Attribute>
-              <option name="separator" value="," />
-            </Attribute>
-          </value>
-        </entry>
-        <entry key="\map\Spielberg\Spielberg_raceline.csv">
-          <value>
-            <Attribute>
-              <option name="separator" value=";" />
-            </Attribute>
-          </value>
-        </entry>
-        <entry key="\map\example\example_raceline.csv">
-          <value>
-            <Attribute>
-              <option name="separator" value=";" />
-            </Attribute>
-          </value>
-        </entry>
-        <entry key="\map\stadium\stadium_raceline.csv">
-          <value>
-            <Attribute>
-              <option name="separator" value=";" />
-            </Attribute>
-          </value>
-        </entry>
         <entry key="\test_kmpc_Ahmed\maps\MoscowRaceway\MoscowRaceway_centerline.csv">
           <value>
             <Attribute>

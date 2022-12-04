@@ -126,7 +126,7 @@ class LQR:
         S = self.Q
         Sn = None
 
-        max_iter = 500
+        max_iter = 100
         ε = 0.001  # tolerance epsilon
         diff = math.inf  # always use value iteration with max iteration!
 

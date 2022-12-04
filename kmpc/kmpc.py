@@ -1,33 +1,13 @@
-# MIT License
-
-# Copyright (c) Hongrui Zheng, Johannes Betz
-
-# Permission is hereby granted, free of charge, to any person obtaining a copy
-# of this software and associated documentation files (the "Software"), to deal
-# in the Software without restriction, including without limitation the rights
-# to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
-# copies of the Software, and to permit persons to whom the Software is
-# furnished to do so, subject to the following conditions:
-
-# The above copyright notice and this permission notice shall be included in all
-# copies or substantial portions of the Software.
-
-# THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
-# IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
-# FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
-# AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
-# LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
-# OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
-# SOFTWARE.
+"""
+    Single Track Kinematic MPC waypoint tracker
+    Author: Hongrui Zheng, Johannes Betz, Ahmad Amine, Derek Zhou
+    References: https://github.com/f1tenth/f1tenth_planning/tree/main/f1tenth_planning/control/kinematic_mpc
+                https://github.com/f1tenth/f1tenth_planning/tree/main/examples/control
+                https://atsushisakai.github.io/PythonRobotics/modules/path_tracking/model_predictive_speed_and_steering_control/model_predictive_speed_and_steering_control.html#mpc-modeling
+                https://www.cvxpy.org/
+                https://github.com/AtsushiSakai/PythonRobotics/tree/master/PathTracking/model_predictive_speed_and_steer_control
 
 """
-Dynamic Single Track MPC waypoint tracker
-
-Author: Hongrui Zheng, Johannes Betz, Ahmad Amine
-Last Modified: 8/1/22
-"""
-
-from dataclasses import dataclass, field
 import cvxpy
 import numpy as np
 from scipy.linalg import block_diag
@@ -43,12 +23,13 @@ def nearest_point(point, trajectory):
     Args:
         point (numpy.ndarray, (2, )): (x, y) of current pose
         trajectory (numpy.ndarray, (N, 2)): array of (x, y) trajectory waypoints
-            NOTE: points in trajectory must be unique. If they are not unique, a divide by 0 error will destroy the world
+            NOTE: points in trajectory must be unique. If they are not unique, a divide by 0 error will destroy the env
     Returns:
         nearest_point (numpy.ndarray, (2, )): nearest point on the trajectory to the point
         nearest_dist (float): distance to the nearest point
-        t (float): nearest point's location as a segment between 0 and 1 on the vector formed by the closest two points on the trajectory. (p_i---*-------p_i+1)
-        i (int): index of nearest point in the array of trajectory waypoints
+        t (float): nearest point's location as a segment between 0 and 1 on the vector formed by the closest two points
+                   on the trajectory. (p_i---*-------p_i+1)
+        i (int): index of the nearest point in the array of trajectory waypoints
     """
     diffs = trajectory[1:, :] - trajectory[:-1, :]
     l2s = diffs[:, 0] ** 2 + diffs[:, 1] ** 2
@@ -65,8 +46,8 @@ def nearest_point(point, trajectory):
         dists[i] = np.sqrt(np.sum(temp * temp))
     min_dist_segment = np.argmin(dists)
     dist_from_segment_start = np.linalg.norm(diffs[min_dist_segment] * t[min_dist_segment])
-    return projections[min_dist_segment], dist_from_segment_start, dists[min_dist_segment], t[
-        min_dist_segment], min_dist_segment
+
+    return projections[min_dist_segment], dist_from_segment_start, dists[min_dist_segment], t[min_dist_segment], min_dist_segment
 
 
 @njit(cache=True)
@@ -74,30 +55,17 @@ def pi_2_pi(angle):
     return (angle + math.pi) % (2 * math.pi) - math.pi
 
 
-class STMPCPlanner:
+class KMPCController:
     """
-    Dynamic Single Track MPC Controller, uses the ST model from Common Road
-
-    All vehicle pose used by the planner should be in the map frame.
-
-    Args:
-        waypoints (numpy.ndarray [N x 4], optional): static waypoints to track
-        mass, l_f, l_r, h_CoG, c_f, c_r, Iz, mu
-
-    Attributes:
-        waypoints (numpy.ndarray [N x 4]): static list of waypoints, columns are [x, y, velocity, heading]
+    Single Track Kinematic MPC Controller
+    waypoints are just whole CSV data
     """
 
-    def __init__(
-            self,
-            model,
-            config,
-            waypoints=None,
-    ):
+    def __init__(self, model, config, waypoints=None):
         self.waypoints = waypoints
-        self.waypoints_distances = np.linalg.norm(self.waypoints[1:, (1, 2)] - self.waypoints[:-1, (1, 2)], axis=1)
         self.model = model
         self.config = config
+        self.waypoints_distances = np.linalg.norm(self.waypoints[1:, (1, 2)] - self.waypoints[:-1, (1, 2)], axis=1)
         self.target_ind = 0
         self.input_o = np.zeros(self.config.NU) * np.NAN
         self.odelta_v = np.NAN
@@ -106,22 +74,9 @@ class STMPCPlanner:
         self.init_flag = 0
         self.mpc_prob_init()
 
-    def plan(self, states, waypoints=None):
+    def control(self, states, waypoints=None):
         """
-        Planner plan function overload for Pure Pursuit, returns acutation based on current state
-
-        Args:
-            pose_x (float): current vehicle x position
-            pose_y (float): current vehicle y position
-            pose_theta (float): current vehicle heading angle
-            lookahead_distance (float): lookahead distance to find next waypoint to track
-            waypoints (numpy.ndarray [N x 4], optional): list of dynamic waypoints to track, columns are [x, y, velocity, heading]
-
-        Returns:
-            speed (float): commanded vehicle longitudinal velocity
-            steering_angle (float):  commanded vehicle steering angle
-
-        TODO: implement switching between different controllers here
+        input waypoints and current car states, execute MPC to return steering and speed with other data for logging
         """
         if waypoints is not None:
             if waypoints.shape[1] < 3 or len(waypoints.shape) != 2:
@@ -130,21 +85,12 @@ class STMPCPlanner:
             self.waypoints_distances = np.linalg.norm(self.waypoints[1:, (1, 2)] - self.waypoints[:-1, (1, 2)], axis=1)
         else:
             if self.waypoints is None:
-                raise ValueError(
-                    "Please set waypoints to track during planner instantiation or when calling plan()"
-                )
+                raise ValueError("Please set waypoints to track during planner instantiation or when calling plan()")
 
-        (
-            u,
-            mpc_ref_path_x,
-            mpc_ref_path_y,
-            mpc_pred_x,
-            mpc_pred_y,
-            mpc_ox,
-            mpc_oy,
-        ) = self.MPC_Control(states, self.waypoints)
+        steering, speed, mpc_ref_path_x, mpc_ref_path_y, mpc_pred_x, mpc_pred_y, mpc_ox, mpc_oy = \
+            self.MPC_Control(states, self.waypoints)
 
-        return u, mpc_ref_path_x, mpc_ref_path_y, mpc_pred_x, mpc_pred_y, mpc_ox, mpc_oy
+        return steering, speed, mpc_ref_path_x, mpc_ref_path_y, mpc_pred_x, mpc_pred_y, mpc_ox, mpc_oy
 
     def get_reference_trajectory(self, predicted_speeds, dist_from_segment_start, idx, waypoints):
         s_relative = np.zeros((self.config.TK + 1,))
@@ -181,6 +127,7 @@ class STMPCPlanner:
 
         interpolated_speeds = waypoints[index_absolute][:, 5] + (t * speed_diffs)
 
+        # rearrange reference data
         reference = self.model.sort_reference_trajectory(interpolated_positions,
                                                          interpolated_orientations,
                                                          interpolated_speeds)
@@ -189,27 +136,21 @@ class STMPCPlanner:
 
     def calc_ref_trajectory(self, position, orientation, speed, path):
         """
-        calc referent trajectory ref_traj in T steps: [x, y, v, yaw]
+        https://github.com/AtsushiSakai/PythonRobotics/tree/master/PathTracking/model_predictive_speed_and_steer_control
+        calc reference trajectory in T steps: [x, y, v, yaw]
         using the current velocity, calc the T points along the reference path
-        :param cx: Course X-Position
-        :param cy: Course y-Position
-        :param cyaw: Course Heading
-        :param sp: speed profile
-        :dl: distance step
-        :pind: Setpoint Index
-        :return: reference trajectory ref_traj, reference steering angle
         """
 
-        # Find nearest index/setpoint from where the trajectories are calculated
+        # Find the nearest index from where the trajectories are calculated
         _, dist, _, _, ind = nearest_point(np.array([position[0], position[1]]), path[:, (1, 2)])
 
         reference = self.get_reference_trajectory(np.ones(self.config.TK) * abs(speed), dist, ind, path)
 
-        reference[3, :][reference[3, :] - orientation > 5] = np.abs(
-            reference[3, :][reference[3, :] - orientation > 5] - (2 * np.pi))
-        reference[3, :][reference[3, :] - orientation < -5] = np.abs(
-            reference[3, :][reference[3, :] - orientation < -5] + (2 * np.pi))
-
+        # TODO: to be improved
+        reference[3, :][reference[3, :] - orientation > 5] = \
+            np.abs(reference[3, :][reference[3, :] - orientation > 5] - (2 * np.pi))
+        reference[3, :][reference[3, :] - orientation < -5] = \
+            np.abs(reference[3, :][reference[3, :] - orientation < -5] + (2 * np.pi))
 
         return reference, 0
 
@@ -219,52 +160,44 @@ class STMPCPlanner:
     def mpc_prob_init(self):
         """
         Create MPC quadratic optimization problem using cvxpy, solver: OSQP
-        Will be solved every iteration for control.
+        Problem will be solved for every control iteration.
         More MPC problem information here: https://osqp.org/docs/examples/mpc.html
-
-        xref: reference trajectory (desired trajectory: [x, y, v, yaw])
-        path_predict: predicted states in T steps
-        x0: initial state
-        dref: reference steer angle
-        :return: optimal acceleration and steering strateg
         """
         # Initialize and create vectors for the optimization problem
-        self.xk = cvxpy.Variable(
-            (self.config.NXK, self.config.TK + 1)
-        )  # Vehicle State Vector
-        self.uk = cvxpy.Variable(
-            (self.config.NU, self.config.TK)
-        )  # Control Input vector
+        self.xk = cvxpy.Variable((self.config.NXK, self.config.TK + 1))  # Vehicle State Vector, 4 x (8 + 1)
+        self.uk = cvxpy.Variable((self.config.NU, self.config.TK))  # Control Input vector, 2 x 8
         objective = 0.0  # Objective value of the optimization problem, set to zero
         constraints = []  # Create constraints array
 
         # Initialize reference vectors
-        self.x0k = cvxpy.Parameter((self.config.NXK,))
+        self.x0k = cvxpy.Parameter((self.config.NXK,))  # 4 x 1
         self.x0k.value = np.zeros((self.config.NXK,))
 
         # Initialize reference trajectory parameter
-        self.ref_traj_k = cvxpy.Parameter((self.config.NXK, self.config.TK + 1))
+        self.ref_traj_k = cvxpy.Parameter((self.config.NXK, self.config.TK + 1))  # 4 x (8 + 1) ~ Qk + Qfk
         self.ref_traj_k.value = np.zeros((self.config.NXK, self.config.TK + 1))
 
         # Initializes block diagonal form of R = [R, R, ..., R] (NU*T, NU*T)
-        R_block = block_diag(tuple([self.config.Rk] * self.config.TK))
+        R_block = block_diag(tuple([self.config.Rk] * self.config.TK))  # (2 x 2) * 8, diagonal matrix
 
         # Initializes block diagonal form of Rd = [Rd, ..., Rd] (NU*(T-1), NU*(T-1))
-        Rd_block = block_diag(tuple([self.config.Rdk] * (self.config.TK - 1)))
+        Rd_block = block_diag(tuple([self.config.Rdk] * (self.config.TK - 1)))  # (2 x 2) * (8 - 1) ~ 7, difference
 
         # Initializes block diagonal form of Q = [Q, Q, ..., Qf] (NX*T, NX*T)
-        Q_block = [self.config.Qk] * (self.config.TK)
+        Q_block = [self.config.Qk] * (self.config.TK)  # (4 x 4) * 8
         Q_block.append(self.config.Qfk)
-        Q_block = block_diag(tuple(Q_block))
+        Q_block = block_diag(tuple(Q_block))  # (4 x 4) * (8 + 1)
 
         # Formulate and create the finite-horizon optimal control problem (objective function)
         # The FTOCP has the horizon of T timesteps
 
         # Objective 1: Influence of the control inputs: Inputs u multiplied by the penalty R
         objective += cvxpy.quad_form(cvxpy.vec(self.uk), R_block)
+        # cvxpy.vec() - Flattens the matrix X into a vector in column-major order
 
-        # Objective 2: Deviation of the vehicle from the reference trajectory weighted by Q, including final Timestep T weighted by Qf
-        objective += cvxpy.quad_form(cvxpy.vec(self.xk - self.ref_traj_k), Q_block)
+        # Objective 2: Deviation of the vehicle from the reference trajectory weighted by Q, including final Timestep
+        #              T weighted by Qf
+        objective += cvxpy.quad_form(cvxpy.vec(self.xk - self.ref_traj_k), Q_block)  # Qk + Qfk
 
         # Objective 3: Difference from one control input to the next control input weighted by Rd
         objective += cvxpy.quad_form(cvxpy.vec(cvxpy.diff(self.uk, axis=1)), Rd_block)
@@ -274,42 +207,48 @@ class STMPCPlanner:
         A_block = []
         B_block = []
         C_block = []
+
         # init path to zeros
-        path_predict = np.zeros((self.config.NXK, self.config.TK + 1))
-        input_predict = np.zeros((self.config.NU, self.config.TK + 1))
-        for t in range(self.config.TK):
+        path_predict = np.zeros((self.config.NXK, self.config.TK + 1))  # 4 x (8 + 1)
+        input_predict = np.zeros((self.config.NU, self.config.TK + 1))  # 2 x (8 + 1)
+        for t in range(self.config.TK):  # 8
             A, B, C = self.model.get_model_matrix(path_predict[:, t], input_predict[:, t])
             A_block.append(A)
             B_block.append(B)
             C_block.extend(C)
 
-        A_block = block_diag(tuple(A_block))
+        A_block = block_diag(tuple(A_block))  # A_block changes from list to <class 'scipy.sparse._coo.coo_matrix'>
         B_block = block_diag(tuple(B_block))
-        C_block = np.array(C_block)
+        C_block = np.array(C_block)  # 32 x 1
 
         # [AA] Sparse matrix to CVX parameter for proper stuffing
         # Reference: https://github.com/cvxpy/cvxpy/issues/1159#issuecomment-718925710
-        m, n = A_block.shape
-        self.Annz_k = cvxpy.Parameter(A_block.nnz)
-        data = np.ones(self.Annz_k.size)
-        rows = A_block.row * n + A_block.col
-        cols = np.arange(self.Annz_k.size)
-        Indexer = csc_matrix((data, (rows, cols)), shape=(m * n, self.Annz_k.size))
+        m, n = A_block.shape  # 32, 32
+        self.Annz_k = cvxpy.Parameter(A_block.nnz)  # nnz: number of nonzero elements, nnz = 128
+        data = np.ones(self.Annz_k.size)  # 128 x 1, size = 128, all elements are 1
+        rows = A_block.row * n + A_block.col  # No. ? element in 32 x 32 matrix
+        cols = np.arange(self.Annz_k.size)  # 128 elements that need to be care - diagonal & nonzero, 4 x 4 x 8
+        Indexer = csc_matrix((data, (rows, cols)), shape=(m * n, self.Annz_k.size))  # (rows, cols)	data
 
         # Setting sparse matrix data
-        self.Annz_k.value = A_block.data
+        self.Annz_k.value = A_block.data  # real data
 
         # Now we use this sparse version instead of the old A_ block matrix
         self.Ak_ = cvxpy.reshape(Indexer @ self.Annz_k, (m, n), order="C")
+        # https://www.cvxpy.org/api_reference/cvxpy.atoms.affine.html#cvxpy.reshape
 
-        # Same as A
-        m, n = B_block.shape
-        self.Bnnz_k = cvxpy.Parameter(B_block.nnz)
-        data = np.ones(self.Bnnz_k.size)
-        rows = B_block.row * n + B_block.col
-        cols = np.arange(self.Bnnz_k.size)
-        Indexer = csc_matrix((data, (rows, cols)), shape=(m * n, self.Bnnz_k.size))
+        # B, Same as A
+        m, n = B_block.shape  # 32, 16 = 4 x 8, 2 x 8
+        self.Bnnz_k = cvxpy.Parameter(B_block.nnz)  # nnz = 64
+        data = np.ones(self.Bnnz_k.size)  # 64 = (4 x 2) x 8
+        rows = B_block.row * n + B_block.col  # No. ? element in 32 x 16 matrix
+        cols = np.arange(self.Bnnz_k.size)  # 0, 1, ... 63
+        Indexer = csc_matrix((data, (rows, cols)), shape=(m * n, self.Bnnz_k.size))  # (rows, cols)	data
+
+        # sparse version instead of the old B_block
         self.Bk_ = cvxpy.reshape(Indexer @ self.Bnnz_k, (m, n), order="C")
+
+        # real data
         self.Bnnz_k.value = B_block.data
 
         # No need for sparse matrices for C as most values are parameters
@@ -317,30 +256,26 @@ class STMPCPlanner:
         self.Ck_.value = C_block
 
         # Add dynamics constraints to the optimization problem
-        constraints += [
-            cvxpy.vec(self.xk[:, 1:])
-            == self.Ak_ @ cvxpy.vec(self.xk[:, :-1])
-            + self.Bk_ @ cvxpy.vec(self.uk)
-            + (self.Ck_)
-        ]
+        constraints += [cvxpy.vec(self.xk[:, 1:])
+                        == self.Ak_ @ cvxpy.vec(self.xk[:, :-1]) + self.Bk_ @ cvxpy.vec(self.uk) + (self.Ck_)]
+        # cvxpy.vec() - Flattens the matrix X into a vector in column-major order
 
-        # Set x[k=0] as x0
+        # Constraint 2: initial state - set x[k=0] as x0
         constraints += [self.xk[:, 0] == self.x0k]
 
         # Create the constraints (upper and lower bounds of states and inputs) for the optimization problem
         state_constraints, input_constraints, input_diff_constraints = self.model.get_model_constraints()
 
-        for i in range(self.config.NXK):
+        for i in range(self.config.NXK):  # Constraint 3: state constraints
             constraints += [state_constraints[0, i] <= self.xk[i, :], self.xk[i, :] <= state_constraints[1, i]]
 
-        for i in range(self.config.NU):
+        for i in range(self.config.NU):  # Constraint 4: input constraints
             constraints += [input_constraints[0, i] <= self.uk[i, :], self.uk[i, :] <= input_constraints[1, i]]
             constraints += [input_diff_constraints[0, i] <= cvxpy.diff(self.uk[i, :]),
                             cvxpy.diff(self.uk[i, :]) <= input_diff_constraints[1, i]]
 
         # Create the optimization problem in CVXPY and setup the workspace
-        # Optimization goal: minimize the objective function
-        self.MPC_prob = cvxpy.Problem(cvxpy.Minimize(objective), constraints)
+        self.MPC_prob = cvxpy.Problem(cvxpy.Minimize(objective), constraints)  # minimize the objective function
 
     def mpc_prob_solve(self, ref_traj, path_predict, x0, input_predict):
         self.x0k.value = x0
@@ -366,7 +301,10 @@ class STMPCPlanner:
 
         # Solve the optimization problem in CVXPY
         # Solver selections: cvxpy.OSQP; cvxpy.GUROBI
-        self.MPC_prob.solve(solver=cvxpy.OSQP, verbose=False, warm_start=True)
+        self.MPC_prob.solve(solver=cvxpy.OSQP, polish=True, adaptive_rho=True, rho=0.01, eps_abs=0.0005,
+                            eps_rel=0.0005, verbose=False, warm_start=True)
+        # verbose shows the log, other params limit the accuracy and iterations
+        # we don't need the extreme precision to 10e-6 with the tolerance of 10000 iterations
 
         if self.MPC_prob.status == cvxpy.OPTIMAL or self.MPC_prob.status == cvxpy.OPTIMAL_INACCURATE:
             o_states = self.xk.value
@@ -380,12 +318,7 @@ class STMPCPlanner:
 
     def linear_mpc_control(self, ref_path, x0, ref_control_input):
         """
-        MPC contorl with updating operational point iteraitvely
-        :param ref_path: reference trajectory in T steps
-        :param x0: initial state vector
-        :param a_old: acceleration of T steps of last time
-        :param delta_old: delta of T steps of last time
-        :return: acceleration and delta strategy based on current information
+        MPC control with updating operational point iteratively
         """
 
         if np.isnan(ref_control_input).any():
@@ -399,21 +332,20 @@ class STMPCPlanner:
 
         return mpc_input_output, mpc_states_output, state_prediction
 
-    def MPC_Control(self, x0, path):
+    def MPC_Control(self, x0, path):  # input current vehicle state and waypoints (== path)
         # Calculate the next reference trajectory for the next T steps
         speed, orientation, position = self.model.get_general_states(x0)
         ref_path, self.target_ind = self.calc_ref_trajectory(position, orientation, speed, path)
+
         # Solve the Linear MPC Control problem
-        (
-            self.input_o,
-            states_output,
-            state_predict,
-        ) = self.linear_mpc_control(ref_path, x0, self.input_o)
+        self.input_o, states_output, state_predict = self.linear_mpc_control(ref_path, x0, self.input_o)
 
         # Steering Output: First entry of the MPC steering angle output vector in degree
         u = self.input_o[:, 0]
-        u[0] = u[0] * 0.1 + x0[2]  # speed must add the base speed v = v0 + a * dt
+        steering = u[1]
+        speed = u[0] * self.config.DTK + x0[2]  # speed must add the base speed v = v0 + a * dt
+
         ox = states_output[0]
         oy = states_output[1]
-        # o_input[:, 0]
-        return u, ref_path[0], ref_path[1], state_predict[0], state_predict[1], ox, oy
+
+        return steering, speed, ref_path[0], ref_path[1], state_predict[0], state_predict[1], ox, oy

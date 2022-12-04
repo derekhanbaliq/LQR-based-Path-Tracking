@@ -1,9 +1,10 @@
+from dataclasses import dataclass, field
 from kmpc import *
 from closest_point import *
 
 
 @dataclass
-class MPCConfig:
+class MPCConfig_RealCar:
     NXK: int = 4  # length of kinematic state vector: z = [x, y, v, yaw]
     NU: int = 2  # length of input vector: u = = [accel, steering_speed]
     TK: int = 12  # finite time horizon length kinematic
@@ -46,17 +47,17 @@ class MPCConfig_F110_6:
     TK: int = 8  # finite time horizon length, kinematic
 
     Rk: list = field(
-        default_factory=lambda: np.diag([0.01, 20.0])
+        default_factory=lambda: np.diag([0.01, 25.0])
     )  # input cost matrix, penalty for inputs - [accel, steering_angle]
     Rdk: list = field(
-        default_factory=lambda: np.diag([0.01, 20.0])
+        default_factory=lambda: np.diag([0.01, 25.0])
     )  # input difference cost matrix, penalty for change of inputs - [accel, steering_angle]
     Qk: list = field(
-        default_factory=lambda: np.diag([30, 30, 10, 10.0])
-    )  # state error cost matrix, for the the next (T) prediction time steps [x, y, delta, v, yaw, yaw-rate, beta]
+        default_factory=lambda: np.diag([25, 25, 10, 10])
+    )  # state error cost matrix, for the the next (T) prediction time steps [x, y, delta, v]
     Qfk: list = field(
-        default_factory=lambda: np.diag([30, 30, 10, 10.0])
-    )  # final state error matrix, penalty  for the final state constraints: [x, y, delta, v, yaw, yaw-rate, beta]
+        default_factory=lambda: np.diag([25, 25, 10, 10])
+    )  # final state error matrix, penalty  for the final state constraints: [x, y, delta, v]
     N_IND_SEARCH: int = 20  # Search index number
     DTK: float = 0.1  # time step [s] kinematic
     # dlk: float = 0.03  # dist step [m] kinematic

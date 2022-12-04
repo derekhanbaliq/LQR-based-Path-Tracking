@@ -9,10 +9,10 @@ perf_num: 6
 map_name: 'Catalunya'
 
 # map paths
-#map_path: '../map/Spielberg/Spielberg_map'
-#map_path: '../map/example/example_map'
-#map_path: '../map/MoscowRaceway/MoscowRaceway_map'
-map_path: '../map/Catalunya/Catalunya_map'
+#map_path: '../maps/Spielberg/Spielberg_map'
+#map_path: '../maps/example/example_map'
+#map_path: '../maps/MoscowRaceway/MoscowRaceway_map'
+map_path: '../maps/Catalunya/Catalunya_map'
 map_ext: '.png'
 
 # starting pose for map
@@ -38,10 +38,10 @@ sy: -0.6243834
 stheta: 4.1367500
 
 # raceline path and indices
-#wpt_path: '../map/Spielberg/Spielberg_raceline.csv'
-#wpt_path: '../map/example/example_raceline.csv'
-#wpt_path: '../map/MoscowRaceway/MoscowRaceway_raceline.csv'
-wpt_path: '../map/Catalunya/Catalunya_raceline.csv'
+#wpt_path: '../maps/Spielberg/Spielberg_raceline.csv'
+#wpt_path: '../maps/example/example_raceline.csv'
+#wpt_path: '../maps/MoscowRaceway/MoscowRaceway_raceline.csv'
+wpt_path: '../maps/Catalunya/Catalunya_raceline.csv'
 
 wpt_delim: ';'
 wpt_rowskip: 3

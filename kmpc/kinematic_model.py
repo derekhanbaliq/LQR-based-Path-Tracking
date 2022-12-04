@@ -12,8 +12,9 @@ class KinematicModel:
         self.config = config
 
     def clip_input(self, u):
-        # u matrix Nx2
+        # u matrix N x 2
         u = np.clip(u, [self.config.MAX_DECEL, self.config.MIN_STEER], [self.config.MAX_ACCEL, self.config.MAX_STEER])
+
         return u
 
     def clip_output(self, state):
@@ -27,18 +28,14 @@ class KinematicModel:
 
         input_constraints = np.array([[self.config.MAX_DECEL, self.config.MIN_STEER],
                                       [self.config.MAX_ACCEL, self.config.MAX_STEER]])
-
         input_diff_constraints = np.array([[-np.inf, -self.config.MAX_STEER_V * self.config.DTK],
                                            [np.inf, self.config.MAX_STEER_V * self.config.DTK]])
+
         return state_constraints, input_constraints, input_diff_constraints
 
     def sort_reference_trajectory(self, position_ref, yaw_ref, speed_ref):
-        reference = np.array([
-            position_ref[:, 0],
-            position_ref[:, 1],
-            speed_ref,
-            yaw_ref,
-        ])
+        reference = np.array([position_ref[:, 0], position_ref[:, 1], speed_ref, yaw_ref])
+
         return reference
 
     def get_general_states(self, state):
@@ -64,20 +61,17 @@ class KinematicModel:
 
     def get_model_matrix(self, state, u):
         """
+        https://atsushisakai.github.io/PythonRobotics/modules/path_tracking/model_predictive_speed_and_steering_control/model_predictive_speed_and_steering_control.html#mpc-modeling
         Calc linear and discrete time dynamic model-> Explicit discrete time-invariant
         Linear System: Xdot = Ax + Bu + C
         State vector: x=[x, y, v, yaw]
-        :param v: speed
-        :param phi: heading angle of the vehicle
-        :param delta: steering angle: delta_bar
         :return: A, B, C
         """
         v = state[2]
         phi = state[3]
-
         delta = u[1]
 
-        # State (or system) matrix A, 4x4
+        # State (or system) matrix A, 4 x 4
         A = np.zeros((self.config.NXK, self.config.NXK))
         A[0, 0] = 1.0
         A[1, 1] = 1.0
@@ -89,7 +83,7 @@ class KinematicModel:
         A[1, 3] = self.config.DTK * v * np.cos(phi)
         A[3, 2] = self.config.DTK * np.tan(delta) / self.config.WB
 
-        # Input Matrix B; 4x2
+        # Input Matrix B, 4 x 2
         B = np.zeros((self.config.NXK, self.config.NU))
         B[2, 0] = self.config.DTK
         B[3, 1] = self.config.DTK * v / (self.config.WB * np.cos(delta) ** 2)

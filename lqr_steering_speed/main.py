@@ -22,7 +22,7 @@ def main():
 
     # load map & yaml
     map_name = 'MoscowRaceway'  # Spielberg, example, MoscowRaceway, Catalunya
-    map_path = os.path.abspath(os.path.join('..', 'map', map_name))
+    map_path = os.path.abspath(os.path.join('..', 'maps', map_name))
     yaml_config = yaml.load(open(map_path + '/' + map_name + '_map.yaml'), Loader=yaml.FullLoader)
 
     # load waypoints
@@ -53,14 +53,14 @@ def main():
         log_error.append(errors)
 
         steering, speed = controller.control(obs)  # each agent’s current observation
-        # print("steering = {}, speed = {}".format(round(steering, 5), speed))
+        print("steering = {}, speed = {}".format(round(steering, 5), speed))
         log_action.append([lap_time, steering, speed])
 
         obs, time_step, done, _ = env.step(np.array([[steering, speed]]))
         log_obs.append([lap_time, obs['poses_x'][0], obs['poses_y'][0], obs['poses_theta'][0], obs['linear_vels_x'][0]])
 
         lap_time += time_step
-        env.render(mode='human')
+        env.render(mode='human_fast')
 
     print('Sim elapsed time:', lap_time)
     log.xlsx_log_action(method_name, map_name, log_action)

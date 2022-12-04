@@ -2,13 +2,13 @@ import gym
 import os
 import yaml
 import time
+import json
 from kinematic_model import KinematicModel
 from extended_kinematic_model import ExtendedKinematicModel
 from kmpc import *
 from closest_point import *
-
 from render import Renderer
-from kmpc_config import MPCConfig, MPCConfig_F110_6, MPCConfig_F110_8, MPCConfigEXT
+from kmpc_config import MPCConfig_RealCar, MPCConfig_F110_6, MPCConfig_F110_8, MPCConfigEXT
 
 
 def main():
@@ -16,8 +16,8 @@ def main():
     model_to_use = 'kinematic'  # options: kinematic, ext_kinematic
 
     # load map & yaml
-    map_name = 'MoscowRaceway'  # MoscowRaceway, stadium
-    map_path = os.path.abspath(os.path.join('..', 'map', map_name))
+    map_name = 'Catalunya'  # MoscowRaceway, example, stadium - real car, Spielberg collided, Catalunya OSQP failed
+    map_path = os.path.abspath(os.path.join('..', 'maps', map_name))
     yaml_config = yaml.load(open(map_path + '/' + map_name + '_map.yaml'), Loader=yaml.FullLoader)
 
     # load waypoints
@@ -25,8 +25,8 @@ def main():
     waypoints = np.array(raceline)
 
     # load friction map
-    # tpamap_name = './maps/rounded_rectangle/rounded_rectangle_tpamap.csv'
-    # tpadata_name = './maps/rounded_rectangle/rounded_rectangle_tpadata.json'
+    # tpamap_name = '../maps/stadium/stadium_tpamap.csv'
+    # tpadata_name = '../maps/stadium/stadium_tpadata.json'
     # tpamap = np.loadtxt(tpamap_name, delimiter=';', skiprows=1)
     # tpamap *= 1.5  # map is 1.5 times larger than normal
     # tpadata = {}
@@ -36,11 +36,11 @@ def main():
     # load controller
     controller = None
     if model_to_use == 'kinematic':
-        controller = STMPCPlanner(model=KinematicModel(config=MPCConfig_F110_6()), waypoints=waypoints,
-                                         config=MPCConfig_F110_6())
+        controller = KMPCController(model=KinematicModel(config=MPCConfig_F110_6()), waypoints=waypoints,
+                                  config=MPCConfig_F110_6())
     elif model_to_use == 'ext_kinematic':
-        controller = STMPCPlanner(model=ExtendedKinematicModel(config=MPCConfigEXT()), waypoints=waypoints,
-                                         config=MPCConfigEXT())
+        controller = KMPCController(model=ExtendedKinematicModel(config=MPCConfigEXT()), waypoints=waypoints,
+                                  config=MPCConfigEXT())
     else:
         print("ERROR: Unknown vehicle model")
         exit(1)
@@ -94,18 +94,17 @@ def main():
                                       env.sim.agents[0].state[2],  # steering angle
                                       ])
 
-        u, mpc_ref_path_x, mpc_ref_path_y, mpc_pred_x, mpc_pred_y, mpc_ox, mpc_oy = controller.plan(vehicle_state)
+        steering, speed, mpc_ref_path_x, mpc_ref_path_y, mpc_pred_x, mpc_pred_y, mpc_ox, mpc_oy = controller.control(vehicle_state)
 
-        if model_to_use == 'kinematic':
-            pass
-        elif model_to_use == 'ext_kinematic':
-            u[0] = u[0] * controller.config.MASS  # output of the kinematic MPC is not acceleration, but force
+        if model_to_use == 'ext_kinematic':
+            speed = speed * controller.config.MASS  # output of the kinematic MPC is not acceleration, but force
+            # TODO: used to be accel, need to be modified!
 
         # draw predicted states and reference trajectory
         renderer.reference_traj_show = np.array([mpc_ref_path_x, mpc_ref_path_y]).T
         renderer.predicted_traj_show = np.array([mpc_pred_x, mpc_pred_y]).T
 
-        # # set correct friction to the environment
+        # set correct friction to the environment
         # min_id = get_closest_point_vectorized(np.array([obs['poses_x'][0], obs['poses_y'][0]]), np.array(tpamap))
         # env.params['tire_p_dy1'] = 1.0  # tpadata[str(min_id)][0]  # mu_y
         # env.params['tire_p_dx1'] = 1.1  # tpadata[str(min_id)][0] * 1.1  # mu_x
@@ -113,14 +112,14 @@ def main():
         # Simulation step
         step_reward = 0.0
         for i in range(num_of_sim_steps):  # 20
-            obs, rew, done, info = env.step(np.array([[u[1], u[0]]]))
-            print("steering = {}, speed = {}".format(round(u[1], 5), u[0]))
+            obs, rew, done, info = env.step(np.array([[steering, speed]]))
+            print("steering = {}, speed = {}".format(round(steering, 5), speed))
             step_reward += rew
         laptime += step_reward
 
         # Rendering
         last_render += 1
-        if last_render == render_every:
+        if last_render == render_every:  # render every 2 steps
             last_render = 0
         env.render(mode='human_fast')
 
