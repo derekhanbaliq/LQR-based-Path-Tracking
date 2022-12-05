@@ -1,5 +1,5 @@
 """
-    Single Track Kinematic MPC waypoint tracker
+    Single Track Kinematic MPC
     Author: Hongrui Zheng, Johannes Betz, Ahmad Amine, Derek Zhou
     References: https://github.com/f1tenth/f1tenth_planning/tree/main/f1tenth_planning/control/kinematic_mpc
                 https://github.com/f1tenth/f1tenth_planning/tree/main/examples/control

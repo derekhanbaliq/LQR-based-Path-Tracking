@@ -10,6 +10,13 @@
             </Attribute>
           </value>
         </entry>
+        <entry key="\maps\example\example_raceline.csv">
+          <value>
+            <Attribute>
+              <option name="separator" value=";" />
+            </Attribute>
+          </value>
+        </entry>
         <entry key="\test_kmpc_Ahmed\maps\MoscowRaceway\MoscowRaceway_centerline.csv">
           <value>
             <Attribute>
