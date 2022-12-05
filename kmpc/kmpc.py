@@ -1,12 +1,11 @@
 """
-    Single Track Kinematic MPC
+    Single Track Kinematic MPC - STKMPC
     Author: Hongrui Zheng, Johannes Betz, Ahmad Amine, Derek Zhou
     References: https://github.com/f1tenth/f1tenth_planning/tree/main/f1tenth_planning/control/kinematic_mpc
                 https://github.com/f1tenth/f1tenth_planning/tree/main/examples/control
                 https://atsushisakai.github.io/PythonRobotics/modules/path_tracking/model_predictive_speed_and_steering_control/model_predictive_speed_and_steering_control.html#mpc-modeling
                 https://www.cvxpy.org/
                 https://github.com/AtsushiSakai/PythonRobotics/tree/master/PathTracking/model_predictive_speed_and_steer_control
-
 """
 import cvxpy
 import numpy as np

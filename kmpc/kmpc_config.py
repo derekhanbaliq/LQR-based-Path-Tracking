@@ -6,7 +6,6 @@
                 https://atsushisakai.github.io/PythonRobotics/modules/path_tracking/model_predictive_speed_and_steering_control/model_predictive_speed_and_steering_control.html#mpc-modeling
                 https://www.cvxpy.org/
                 https://github.com/AtsushiSakai/PythonRobotics/tree/master/PathTracking/model_predictive_speed_and_steer_control
-
 """
 from dataclasses import dataclass, field
 from kmpc import *

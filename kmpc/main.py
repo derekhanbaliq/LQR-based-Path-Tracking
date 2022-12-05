@@ -1,3 +1,12 @@
+"""
+    Single Track Kinematic MPC - main
+    Author: Hongrui Zheng, Johannes Betz, Ahmad Amine, Derek Zhou
+    References: https://github.com/f1tenth/f1tenth_planning/tree/main/f1tenth_planning/control/kinematic_mpc
+                https://github.com/f1tenth/f1tenth_planning/tree/main/examples/control
+                https://atsushisakai.github.io/PythonRobotics/modules/path_tracking/model_predictive_speed_and_steering_control/model_predictive_speed_and_steering_control.html#mpc-modeling
+                https://www.cvxpy.org/
+                https://github.com/AtsushiSakai/PythonRobotics/tree/master/PathTracking/model_predictive_speed_and_steer_control
+"""
 import gym
 import os
 import yaml
@@ -6,8 +15,8 @@ import json
 from kinematic_model import KinematicModel
 from extended_kinematic_model import ExtendedKinematicModel
 from kmpc import *
-from render import Renderer
 from kmpc_config import MPCConfig_F110_6, MPCConfig_F110_8, MPCConfigEXT
+from render import Renderer
 
 
 def main():
@@ -100,7 +109,7 @@ def main():
         if obs['lap_counts'][0] == 1:
             done = 1
 
-    print('Sim elapsed time:', laptime, 'Real elapsed time:', time.time() - start)
+    print('Sim elapsed time:', round(laptime, 5), 'Real elapsed time:', round(time.time() - start, 5))
 
 
 if __name__ == '__main__':

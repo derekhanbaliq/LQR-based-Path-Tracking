@@ -1,7 +1,9 @@
 """
-    MEAM 517 Final Project - LQR Steering Control - Renderer class
-    Author: Derek Zhou & Tancy Zhao
-    References: https://github.com/f1tenth/f1tenth_gym/tree/main/examples
+    Single Track Kinematic MPC - KMPC config parameters
+    Author: Hongrui Zheng, Johannes Betz, Ahmad Amine, Derek Zhou
+    References: https://github.com/f1tenth/f1tenth_planning/tree/main/f1tenth_planning/control/kinematic_mpc
+                https://github.com/f1tenth/f1tenth_planning/tree/main/examples/control
+                https://github.com/f1tenth/f1tenth_gym/tree/main/examples
 """
 import numpy as np
 from pyglet.gl import GL_POINTS  # game interface
