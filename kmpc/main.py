@@ -11,7 +11,6 @@ import gym
 import os
 import yaml
 import time
-import json
 from kinematic_model import KinematicModel
 from extended_kinematic_model import ExtendedKinematicModel
 from kmpc import *

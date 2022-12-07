@@ -16,19 +16,20 @@ class KinematicModel:
     inputs - [acceleration, steering angle]
     reference point - center of rear axle
     """
-
     def __init__(self, config):
         self.config = config
 
     def clip_input(self, u):
         # u matrix N x 2
         u = np.clip(u, [self.config.MAX_DECEL, self.config.MIN_STEER], [self.config.MAX_ACCEL, self.config.MAX_STEER])
+        # numpy.clip(a, a_min, a_max, out=None, **kwargs), Clip (limit) the values in an array.
 
         return u
 
     def clip_output(self, state):
-        # state matrix Nx4
-        state[2] = np.clip(state[2], self.config.MIN_SPEED, self.config.MAX_SPEED)
+        # state matrix N x 4
+        state[2] = np.clip(state[2], self.config.MIN_SPEED, self.config.MAX_SPEED)  # speed only
+
         return state
 
     def get_model_constraints(self):
@@ -43,38 +44,38 @@ class KinematicModel:
         return state_constraints, input_constraints, input_diff_constraints
 
     def sort_reference_trajectory(self, position_ref, yaw_ref, speed_ref):
-        reference = np.array([position_ref[:, 0], position_ref[:, 1], speed_ref, yaw_ref])
+        reference = np.array([position_ref[:, 0], position_ref[:, 1], speed_ref, yaw_ref])  # x, y, v, yaw
 
-        return reference
+        return reference  # N x 4
 
     def get_general_states(self, state):
         speed = state[2]
         orientation = state[3]
         position = state[[0, 1]]
-        return speed, orientation, position
+
+        return speed, orientation, position  # express the states more generally
 
     def get_f(self, state, control_input):
         # state = x, y, v, yaw
-        # input check
-        control_input = self.clip_input(control_input)
-        delta = control_input[1]
-        a = control_input[0]
+        clipped_control_input = self.clip_input(control_input)  # input check
+        delta = clipped_control_input[1]
+        a = clipped_control_input[0]
 
+        # f is for Forward Euler Discretization with sampling time dt: z[k+1] = z[k] + f(z[k], u[k]) * dt
         f = np.zeros(4)
-        f[0] = state[2] * np.cos(state[3])
-        f[1] = state[2] * np.sin(state[3])
-        f[3] = state[2] / self.config.WB * np.tan(delta)
-        f[2] = a
+        f[0] = state[2] * np.cos(state[3])  # x_dot
+        f[1] = state[2] * np.sin(state[3])  # y_dot
+        f[3] = state[2] / self.config.WB * np.tan(delta)  # yaw_dot
+        f[2] = a  # v_dot
 
-        return f
+        return f  # kinematic model f(x[k], u[k]), Automatic Steering P27 or Atsushi's KMPC doc
 
     def get_model_matrix(self, state, u):
         """
         https://atsushisakai.github.io/PythonRobotics/modules/path_tracking/model_predictive_speed_and_steering_control/model_predictive_speed_and_steering_control.html#mpc-modeling
-        Calc linear and discrete time dynamic model-> Explicit discrete time-invariant
+        Calculate kinematic model-> Explicit discrete time-invariant
         Linear System: Xdot = Ax + Bu + C
         State vector: x=[x, y, v, yaw]
-        :return: A, B, C
         """
         v = state[2]
         phi = state[3]
@@ -97,6 +98,7 @@ class KinematicModel:
         B[2, 0] = self.config.DTK
         B[3, 1] = self.config.DTK * v / (self.config.WB * np.cos(delta) ** 2)
 
+        # Matrix C, 4 x 1, C is just a shift because we need an affine model
         C = np.zeros(self.config.NXK)
         C[0] = self.config.DTK * v * np.sin(phi) * phi
         C[1] = -self.config.DTK * v * np.cos(phi) * phi
@@ -105,12 +107,15 @@ class KinematicModel:
         return A, B, C
 
     def predict_motion(self, x0, control_input):
-        predicted_states = np.zeros((self.config.NXK, self.config.TK + 1))
-        predicted_states[:, 0] = x0
+        predicted_states = np.zeros((self.config.NXK, self.config.TK + 1))  # 4 x (8 + 1)
+        predicted_states[:, 0] = x0  # set current state
         state = x0
-        for i in range(1, self.config.TK + 1):
+        for i in range(1, self.config.TK + 1):  # 1 ... 8
+            # Forward Euler Discretization with sampling time dt: z[k+1] = z[k] + f(z[k], u[k]) * dt
             state = state + self.get_f(state, control_input[:, i - 1]) * self.config.DTK
             state = self.clip_output(state)
             predicted_states[:, i] = state
-        input_prediction = np.zeros((2, self.config.TK + 1))
-        return predicted_states, input_prediction
+
+        input_prediction = np.zeros((self.config.NU, self.config.TK + 1))  # 2 x (8 + 1), empty!
+
+        return predicted_states, input_prediction  # filled states, empty inputs

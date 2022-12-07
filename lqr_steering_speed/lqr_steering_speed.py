@@ -158,7 +158,7 @@ class LQRSteeringSpeedController:
         # feedforward_term = math.atan2(self.wheelbase * γ, 1)  # = math.atan2(L / r, 1) = math.atan2(L, r)
         steering_ff = self.wheelbase * γ  # can be seen as current steering angle
 
-        speed_fb = (K @ x_new)[1, 0]  # the acceleration, should be regarded as Δv
+        speed_fb = (K @ x_new)[1, 0]  # the acceleration, should be regarded as Δv, or acceleration in 0.01s
 
         steering = - steering_fb + steering_ff
         speed = - speed_fb + self.car.v  # current car speed is the base, v_base + Δv is the speed we want

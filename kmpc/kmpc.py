@@ -129,7 +129,7 @@ class KMPCController:
         # rearrange reference data
         reference = self.model.sort_reference_trajectory(interpolated_positions,
                                                          interpolated_orientations,
-                                                         interpolated_speeds)
+                                                         interpolated_speeds)  # N x 4 data
 
         return reference
 

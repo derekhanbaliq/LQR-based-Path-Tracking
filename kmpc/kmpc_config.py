@@ -37,8 +37,7 @@ class MPCConfig_F110_6:
     )  # final state error matrix, penalty  for the final state constraints: [x, y, delta, v]
     N_IND_SEARCH: int = 20  # Search index number
     DTK: float = 0.1  # time step [s] kinematic
-    # dlk: float = 0.03  # dist step [m] kinematic
-    dlk: float = 0.2  # dist step [m] kinematic - ?????????????????????????????????? F1"TENTH"
+    dlk: float = 0.2  # dist step [m] kinematic - check the difference between waypoints[0, 0] and waypoints[0, 1]
     LENGTH: float = 0.58  # Length of the vehicle [m]
     WIDTH: float = 0.31  # Width of the vehicle [m]
     LR: float = 0.17145
