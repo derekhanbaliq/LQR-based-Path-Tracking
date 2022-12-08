@@ -71,6 +71,18 @@ class KMPCController:
         self.oa = np.NAN
         self.origin_switch = 1
         self.init_flag = 0
+
+        # placeholders for self.vars in mpc_prob_init()
+        self.xk = None
+        self.uk = None
+        self.x0k = None
+        self.ref_traj_k = None
+        self.Annz_k = None
+        self.Ak_ = None
+        self.Bnnz_k = None
+        self.Bk_ = None
+        self.Ck_ = None
+        self.MPC_prob = None
         self.mpc_prob_init()
 
     def control(self, states, waypoints=None):
@@ -84,7 +96,7 @@ class KMPCController:
             self.waypoints_distances = np.linalg.norm(self.waypoints[1:, (1, 2)] - self.waypoints[:-1, (1, 2)], axis=1)
         else:
             if self.waypoints is None:
-                raise ValueError("Please set waypoints to track during planner instantiation or when calling plan()")
+                raise ValueError("Please set waypoints to track during planner instantiation or when calling control()")
 
         steering, speed, mpc_ref_path_x, mpc_ref_path_y, mpc_pred_x, mpc_pred_y, mpc_ox, mpc_oy = \
             self.MPC_Control(states, self.waypoints)
@@ -92,38 +104,38 @@ class KMPCController:
         return steering, speed, mpc_ref_path_x, mpc_ref_path_y, mpc_pred_x, mpc_pred_y, mpc_ox, mpc_oy
 
     def get_reference_trajectory(self, predicted_speeds, dist_from_segment_start, idx, waypoints):
-        s_relative = np.zeros((self.config.TK + 1,))
-        s_relative[0] = dist_from_segment_start
-        s_relative[1:] = predicted_speeds * self.config.DTK
-        s_relative = np.cumsum(s_relative)
+        s_relative = np.zeros((self.config.TK + 1,))  # horizon + 1
+        s_relative[0] = dist_from_segment_start  # nearest dist
+        s_relative[1:] = predicted_speeds * self.config.DTK  # curr speed * time step (0.1s)
+        s_relative = np.cumsum(s_relative)  # accumulated distance in horizon time steps based on nearest dist
+        # cumsum(): Return the cumulative sum of the elements along a given axis.
 
         waypoints_distances_relative = np.cumsum(np.roll(self.waypoints_distances, -idx))
+        # roll(): Roll array elements along a given axis. -idx = roll in left dir for idx step
 
-        index_relative = np.int_(np.ones((self.config.TK + 1,)))
-        for i in range(self.config.TK + 1):
-            index_relative[i] = (waypoints_distances_relative <= s_relative[i]).sum()
-        index_absolute = np.mod(idx + index_relative, waypoints.shape[0] - 1)
+        index_relative = np.int_(np.ones((self.config.TK + 1,)))  # record increasing idx based on curr idx
+        for i in range(self.config.TK + 1):  # horizon num of times
+            index_relative[i] = (waypoints_distances_relative <= s_relative[i]).sum()  # idx[i] = [T T F F...].sum() = 2
+        index_absolute = np.mod(idx + index_relative, waypoints.shape[0] - 1)  # avoid index overflow
+        # print("index_absolute = {}".format(index_absolute))
 
-        segment_part = s_relative - (
-                waypoints_distances_relative[index_relative] - self.waypoints_distances[index_absolute])
+        # remainder after subtracting wpt step dist (0.2)
+        segment_part = \
+            s_relative - (waypoints_distances_relative[index_relative] - self.waypoints_distances[index_absolute])
 
-        t = (segment_part / self.waypoints_distances[index_absolute])
+        t = (segment_part / self.waypoints_distances[index_absolute])  # segment's ratio
         # print(np.all(np.logical_and((t < 1.0), (t > 0.0))))
 
         position_diffs = (waypoints[np.mod(index_absolute + 1, waypoints.shape[0] - 1)][:, (1, 2)] -
-                          waypoints[index_absolute][:, (1, 2)])
-
+                          waypoints[index_absolute][:, (1, 2)])  # (horizon + 1) * 2
         orientation_diffs = (waypoints[np.mod(index_absolute + 1, waypoints.shape[0] - 1)][:, 3] -
                              waypoints[index_absolute][:, 3])
-
         speed_diffs = (waypoints[np.mod(index_absolute + 1, waypoints.shape[0] - 1)][:, 5] -
                        waypoints[index_absolute][:, 5])
 
         interpolated_positions = waypoints[index_absolute][:, (1, 2)] + (t * position_diffs.T).T
-
         interpolated_orientations = waypoints[index_absolute][:, 3] + (t * orientation_diffs)
         interpolated_orientations = (interpolated_orientations + np.pi) % (2 * np.pi) - np.pi
-
         interpolated_speeds = waypoints[index_absolute][:, 5] + (t * speed_diffs)
 
         # rearrange reference data
@@ -140,10 +152,10 @@ class KMPCController:
         using the current velocity, calc the T points along the reference path
         """
 
-        # Find the nearest index from where the trajectories are calculated
+        # Find the nearest index & dist current pos
         _, dist, _, _, ind = nearest_point(np.array([position[0], position[1]]), path[:, (1, 2)])
 
-        reference = self.get_reference_trajectory(np.ones(self.config.TK) * abs(speed), dist, ind, path)
+        reference = self.get_reference_trajectory(np.ones(self.config.TK) * abs(speed), dist, ind, path)  # N x 4 data
 
         # TODO: to be improved
         reference[3, :][reference[3, :] - orientation > 5] = \
@@ -183,7 +195,7 @@ class KMPCController:
         Rd_block = block_diag(tuple([self.config.Rdk] * (self.config.TK - 1)))  # (2 x 2) * (8 - 1) ~ 7, difference
 
         # Initializes block diagonal form of Q = [Q, Q, ..., Qf] (NX*T, NX*T)
-        Q_block = [self.config.Qk] * (self.config.TK)  # (4 x 4) * 8
+        Q_block = [self.config.Qk] * self.config.TK  # (4 x 4) * 8
         Q_block.append(self.config.Qfk)
         Q_block = block_diag(tuple(Q_block))  # (4 x 4) * (8 + 1)
 
@@ -256,7 +268,7 @@ class KMPCController:
 
         # Add dynamics constraints to the optimization problem
         constraints += [cvxpy.vec(self.xk[:, 1:])
-                        == self.Ak_ @ cvxpy.vec(self.xk[:, :-1]) + self.Bk_ @ cvxpy.vec(self.uk) + (self.Ck_)]
+                        == self.Ak_ @ cvxpy.vec(self.xk[:, :-1]) + self.Bk_ @ cvxpy.vec(self.uk) + self.Ck_]
         # cvxpy.vec() - Flattens the matrix X into a vector in column-major order
 
         # Constraint 2: initial state - set x[k=0] as x0
@@ -331,9 +343,9 @@ class KMPCController:
 
         return mpc_input_output, mpc_states_output, state_prediction
 
-    def MPC_Control(self, x0, path):  # input current vehicle state and waypoints (== path)
+    def MPC_Control(self, x0, path):  # input current vehicle state & waypoints (== path)
         # Calculate the next reference trajectory for the next T steps
-        speed, orientation, position = self.model.get_general_states(x0)
+        speed, orientation, position = self.model.get_general_states(x0)  # v, yaw, [x, y]
         ref_path, self.target_ind = self.calc_ref_trajectory(position, orientation, speed, path)
 
         # Solve the Linear MPC Control problem

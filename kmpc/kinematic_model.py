@@ -107,6 +107,7 @@ class KinematicModel:
         return A, B, C
 
     def predict_motion(self, x0, control_input):
+        # derive the future steps by Forward Euler Discretization - predict
         predicted_states = np.zeros((self.config.NXK, self.config.TK + 1))  # 4 x (8 + 1)
         predicted_states[:, 0] = x0  # set current state
         state = x0

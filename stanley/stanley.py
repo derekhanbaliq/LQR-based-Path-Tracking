@@ -54,7 +54,7 @@ class Waypoint:
 
 class StanleyPlanner:
     """
-    This is the class for the Front Weeel Feedback Controller (Stanley) for tracking the path of the vehicle
+    This is the class for the Front Wheel Feedback Controller (Stanley) for tracking the path of the vehicle
     References:
     - Stanley: The robot that won the DARPA grand challenge: http://isl.ecst.csuchico.edu/DOCS/darpa2005/DARPA%202005%20Stanley.pdf
     - Autonomous Automobile Path Tracking: https://www.ri.cmu.edu/pub_files/2009/2/Automatic_Steering_Methods_for_Autonomous_Automobile_Path_Tracking.pdf
