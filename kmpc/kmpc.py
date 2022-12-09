@@ -65,7 +65,6 @@ class KMPCController:
         self.model = model
         self.config = config
         self.waypoints_distances = np.linalg.norm(self.waypoints[1:, (1, 2)] - self.waypoints[:-1, (1, 2)], axis=1)
-        self.target_ind = 0
         self.input_o = np.zeros(self.config.NU) * np.NAN
         self.odelta_v = np.NAN
         self.oa = np.NAN
@@ -151,19 +150,22 @@ class KMPCController:
         calc reference trajectory in T steps: [x, y, v, yaw]
         using the current velocity, calc the T points along the reference path
         """
-
         # Find the nearest index & dist current pos
         _, dist, _, _, ind = nearest_point(np.array([position[0], position[1]]), path[:, (1, 2)])
 
+        # get interpolated waypoints for reference
         reference = self.get_reference_trajectory(np.ones(self.config.TK) * abs(speed), dist, ind, path)  # N x 4 data
 
         # TODO: to be improved
+        # check the yaw angle difference is over 5 or not, to avoid the abrupt 2π change (≈ 2π but < 2π)
         reference[3, :][reference[3, :] - orientation > 5] = \
             np.abs(reference[3, :][reference[3, :] - orientation > 5] - (2 * np.pi))
         reference[3, :][reference[3, :] - orientation < -5] = \
             np.abs(reference[3, :][reference[3, :] - orientation < -5] + (2 * np.pi))
+        reference[3, :][reference[3, :] - orientation > 5] = pi_2_pi(reference[3, :][reference[3, :] - orientation > 5])
+        # normal pi_2_pi works as well, but according to Ahmad, threshold-5 is smoother
 
-        return reference, 0
+        return reference
 
     def get_nparray_from_matrix(self, x):
         return np.array(x).flatten()
@@ -331,11 +333,10 @@ class KMPCController:
         """
         MPC control with updating operational point iteratively
         """
-
-        if np.isnan(ref_control_input).any():
+        if np.isnan(ref_control_input).any():  # if every input is nan
             ref_control_input = np.zeros((2, self.config.TK))
 
-        # Call the Motion Prediction function: Predict the vehicle motion for x-steps
+        # Predict the vehicle motion for x-steps
         state_prediction, input_prediction = self.model.predict_motion(x0, ref_control_input)
 
         # Run the MPC optimization: Create and solve the optimization problem
@@ -346,7 +347,7 @@ class KMPCController:
     def MPC_Control(self, x0, path):  # input current vehicle state & waypoints (== path)
         # Calculate the next reference trajectory for the next T steps
         speed, orientation, position = self.model.get_general_states(x0)  # v, yaw, [x, y]
-        ref_path, self.target_ind = self.calc_ref_trajectory(position, orientation, speed, path)
+        ref_path = self.calc_ref_trajectory(position, orientation, speed, path)  # interpolated waypoints for ref traj
 
         # Solve the Linear MPC Control problem
         self.input_o, states_output, state_predict = self.linear_mpc_control(ref_path, x0, self.input_o)
