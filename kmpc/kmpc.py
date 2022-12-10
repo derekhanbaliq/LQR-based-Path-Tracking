@@ -66,10 +66,6 @@ class KMPCController:
         self.config = config
         self.waypoints_distances = np.linalg.norm(self.waypoints[1:, (1, 2)] - self.waypoints[:-1, (1, 2)], axis=1)
         self.input_o = np.zeros(self.config.NU) * np.NAN
-        self.odelta_v = np.NAN
-        self.oa = np.NAN
-        self.origin_switch = 1
-        self.init_flag = 0
 
         # placeholders for self.vars in mpc_prob_init()
         self.xk = None
@@ -166,9 +162,6 @@ class KMPCController:
         # normal pi_2_pi works as well, but according to Ahmad, threshold-5 is smoother
 
         return reference
-
-    def get_nparray_from_matrix(self, x):
-        return np.array(x).flatten()
 
     def mpc_prob_init(self):
         """
@@ -291,12 +284,16 @@ class KMPCController:
         self.MPC_prob = cvxpy.Problem(cvxpy.Minimize(objective), constraints)  # minimize the objective function
 
     def mpc_prob_solve(self, ref_traj, path_predict, x0, input_predict):
+        # init state value
         self.x0k.value = x0
 
+        # get A, B, C block matrices
         A_block = []
         B_block = []
         C_block = []
+
         for t in range(self.config.TK):
+            # use predicted data to optimize the objective function to min, but only use first x & u for execution
             A, B, C = self.model.get_model_matrix(path_predict[:, t], input_predict[:, t])
             A_block.append(A)
             B_block.append(B)
@@ -319,35 +316,39 @@ class KMPCController:
         # verbose shows the log, other params limit the accuracy and iterations
         # we don't need the extreme precision to 10e-6 with the tolerance of 10000 iterations
 
+        # solves the problem with desired accuracy or have a lower accuracy than desired
         if self.MPC_prob.status == cvxpy.OPTIMAL or self.MPC_prob.status == cvxpy.OPTIMAL_INACCURATE:
             o_states = self.xk.value
             ou = self.uk.value
-
         else:
             print("Error: Cannot solve KS mpc... Status : ", self.MPC_prob.status)
-            ou, o_states = np.zeros(self.config.NU) * np.NAN, np.zeros(self.config.NXK) * np.NAN
+            ou, o_states = np.zeros(self.config.NU) * np.NAN, np.zeros(self.config.NXK) * np.NAN  # clear
 
-        return ou, o_states
+        return ou, o_states  # data with a horizon length of optimal states and inputs
 
     def linear_mpc_control(self, ref_path, x0, ref_control_input):
         """
         MPC control with updating operational point iteratively
         """
-        if np.isnan(ref_control_input).any():  # if every input is nan
+        # clear input
+        if np.isnan(ref_control_input).any():
             ref_control_input = np.zeros((2, self.config.TK))
 
-        # Predict the vehicle motion for x-steps
+        # Predict the vehicle motion for num-of-horizon steps using Forward Euler Discretization
         state_prediction, input_prediction = self.model.predict_motion(x0, ref_control_input)
+        # set any input prediction to become zero
 
-        # Run the MPC optimization: Create and solve the optimization problem
+        # Run the MPC optimization: solve the optimization problem
         mpc_input_output, mpc_states_output = self.mpc_prob_solve(ref_path, state_prediction, x0, input_prediction)
+        # optimal inputs & states with in coming horizon steps
 
         return mpc_input_output, mpc_states_output, state_prediction
 
     def MPC_Control(self, x0, path):  # input current vehicle state & waypoints (== path)
-        # Calculate the next reference trajectory for the next T steps
+        # get current state for calculating reference trajectory
         speed, orientation, position = self.model.get_general_states(x0)  # v, yaw, [x, y]
-        ref_path = self.calc_ref_trajectory(position, orientation, speed, path)  # interpolated waypoints for ref traj
+        # interpolated waypoints for ref traj - can be a great visualization tool for debugging waypoint calculation
+        ref_path = self.calc_ref_trajectory(position, orientation, speed, path)
 
         # Solve the Linear MPC Control problem
         self.input_o, states_output, state_predict = self.linear_mpc_control(ref_path, x0, self.input_o)
@@ -355,9 +356,10 @@ class KMPCController:
         # Steering Output: First entry of the MPC steering angle output vector in degree
         u = self.input_o[:, 0]
         steering = u[1]
-        speed = u[0] * self.config.DTK + x0[2]  # speed must add the base speed v = v0 + a * dt
+        speed = u[0] * self.config.DTK + x0[2]  # speed must add the base speed ~ v = v0 + a * dt
 
         ox = states_output[0]
-        oy = states_output[1]
+        oy = states_output[1]  # a series of solved x & y
 
+        # solved steering & speed for next step, ref / predicted / solved series of x & y
         return steering, speed, ref_path[0], ref_path[1], state_predict[0], state_predict[1], ox, oy
