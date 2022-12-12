@@ -105,7 +105,7 @@ class LQR:
                            [v / wheelbase]])
         # self.Q = np.diag([0.999, 0.0, 0.0066, 0.0])  # Billy's code recommendation
         self.Q = np.diag([1, 0.0, 0.01, 0.0])
-        self.R = np.diag([0.75])
+        self.R = np.diag([1])
 
     def discrete_lqr(self):
         A = self.A
