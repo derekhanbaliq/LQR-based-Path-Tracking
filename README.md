@@ -19,11 +19,12 @@ pip install -e .  # install the dependencies for F1TENTH gym.
 pip install -r requirements.txt  # install other dependencies
 ```
 
-Then you can run a quick waypoint follow example by:
+Then you can run a quick lqr steering example by:
 ```bash
-cd examples
-python waypoint_follow.py
+cd lqr_steering
+python main.py
 ```
+Or just config PyCharm and press Ctrl+Shift+F10.
 
 ## Postscript
 
