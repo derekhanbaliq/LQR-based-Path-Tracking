@@ -25,3 +25,6 @@ cd examples
 python waypoint_follow.py
 ```
 
+## Postscript
+
+For MPC development, please check my MPC repo for developed version.
