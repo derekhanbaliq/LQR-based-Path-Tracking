@@ -17,48 +17,6 @@
             </Attribute>
           </value>
         </entry>
-        <entry key="\test_kmpc_Ahmed\maps\MoscowRaceway\MoscowRaceway_centerline.csv">
-          <value>
-            <Attribute>
-              <option name="separator" value="," />
-            </Attribute>
-          </value>
-        </entry>
-        <entry key="\test_kmpc_Ahmed\maps\MoscowRaceway\MoscowRaceway_raceline.csv">
-          <value>
-            <Attribute>
-              <option name="separator" value=";" />
-            </Attribute>
-          </value>
-        </entry>
-        <entry key="\test_kmpc_Ahmed\maps\rounded_rectangle\rounded_rectangle.csv">
-          <value>
-            <Attribute>
-              <option name="separator" value="," />
-            </Attribute>
-          </value>
-        </entry>
-        <entry key="\test_kmpc_Ahmed\maps\rounded_rectangle\rounded_rectangle_waypoints.csv">
-          <value>
-            <Attribute>
-              <option name="separator" value=";" />
-            </Attribute>
-          </value>
-        </entry>
-        <entry key="\test_kmpc_Ahmed\waypoints\levine_centerline.csv">
-          <value>
-            <Attribute>
-              <option name="separator" value=";" />
-            </Attribute>
-          </value>
-        </entry>
-        <entry key="\test_kmpc_Billy_comment\levine_centerline.csv">
-          <value>
-            <Attribute>
-              <option name="separator" value=";" />
-            </Attribute>
-          </value>
-        </entry>
       </map>
     </option>
   </component>
