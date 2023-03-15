@@ -26,8 +26,8 @@ Thanks to the help of [this page](https://github.com/conda/conda/issues/11795).
 Configure the environment as follows:
 ```bash
 cd <repo_name>  # navigate to the root directory of this project
-conda create -n lqr python=3.8  # create a new conda environment with Python 3.8
-conda activate lqr  # activate the environment
+conda create -n f110_lqr python=3.8  # create a new conda environment with Python 3.8
+conda activate f110_lqr  # activate the environment
 pip install -e .  # install the dependencies for F1TENTH gym.
 pip install -r requirements.txt  # install other dependencies
 ```
