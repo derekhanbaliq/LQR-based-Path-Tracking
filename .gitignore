@@ -16,3 +16,6 @@ test_kmpc_Billy_comment/*
 test_lqr_Billy/*
 test_render/*
 kmpc/*
+.idea/*
+examples/*
+Dockerfile
